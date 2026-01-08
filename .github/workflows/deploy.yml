@@ -3,7 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master  # Основная ветка проекта
+      - main    # Основная ветка проекта
+      - master  # Для обратной совместимости
 
 jobs:
   build-and-deploy:
