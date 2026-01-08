@@ -15,12 +15,22 @@ export class TransactionSupabaseRepository {
    * @returns массив всех транзакций
    */
   async getAll(): Promise<Transaction[]> {
+    // Выбираем только поля, которые точно есть в БД (без notes, если колонка не создана)
     const { data, error } = await this.supabase.client
       .from('transactions')
-      .select('*');
+      .select('id, item_id, type, amount, date');
 
     if (error) throw error;
-    return (data ?? []) as Transaction[];
+    
+    // Фильтруем только нужные поля
+    return (data ?? []).map((row: any) => ({
+      id: row.id,
+      item_id: row.item_id,
+      type: row.type,
+      amount: row.amount,
+      date: row.date
+      // notes исключены, если колонка отсутствует
+    })) as Transaction[];
   }
 
   /**
@@ -78,10 +88,20 @@ export class TransactionSupabaseRepository {
       }
     }
     
+    // Фильтруем только нужные поля перед отправкой (убираем created_at и другие лишние поля)
+    // Исключаем notes, если колонка в БД не создана, чтобы избежать 400 Bad Request
+    const cleanList = list.map(tx => ({
+      id: tx.id,
+      item_id: tx.item_id,
+      type: tx.type,
+      amount: tx.amount,
+      date: tx.date
+    }));
+    
     // Используем upsert для обновления существующих и вставки новых записей
     const { error: upsertError } = await this.supabase.client
       .from('transactions')
-      .upsert(list, { onConflict: 'id' });
+      .upsert(cleanList, { onConflict: 'id' });
     
     if (upsertError) {
       console.error('Upsert error:', upsertError);

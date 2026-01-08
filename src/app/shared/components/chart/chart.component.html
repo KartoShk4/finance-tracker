@@ -14,10 +14,10 @@
   </div>
 
   <!-- График или пустое состояние -->
-  <div class="chart-wrapper">
-    <canvas #canvas [style.display]="hasData ? 'block' : 'none'"></canvas>
-    <div *ngIf="!hasData" class="chart-empty">
-      Нет данных для отображения
-    </div>
+  <div class="chart-wrapper" [style.display]="hasData ? 'block' : 'none'">
+    <canvas #canvas></canvas>
+  </div>
+  <div *ngIf="!hasData" class="chart-empty">
+    Нет данных для отображения
   </div>
 </div>

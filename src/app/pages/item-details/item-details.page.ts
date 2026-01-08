@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ItemStore } from '../../features/items/item.store';
 import { TransactionStore } from '../../features/transactions/transaction.store';
-import { aggregateByPeriod, PeriodType } from '../../shared/utils/chart.utils';
+import { DateTimePickerComponent } from '../../shared/components/date-time-picker/date-time-picker.component';
+import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 import { ChartComponent } from '../../shared/components/chart/chart.component';
+import { aggregateByPeriod, PeriodType } from '../../shared/utils/chart.utils';
 
 /**
  * Компонент страницы деталей item
@@ -13,7 +15,7 @@ import { ChartComponent } from '../../shared/components/chart/chart.component';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ChartComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DateTimePickerComponent, LocalDatePipe, ChartComponent],
   templateUrl: './item-details.page.html',
   styleUrls: ['./item-details.page.scss']
 })
@@ -27,6 +29,12 @@ export class ItemDetailsPage {
 
   /** Сумма для новой транзакции */
   amount = 0;
+
+  /** Дата и время транзакции */
+  transactionDate: string = new Date().toISOString();
+
+  /** Примечание к транзакции */
+  notes = '';
 
   /** Выбранный период для графика */
   selectedPeriod = signal<PeriodType>('day');
@@ -66,14 +74,16 @@ export class ItemDetailsPage {
     // Тип транзакции соответствует типу категории
     const type = item.category;
 
-    // Добавляем транзакцию и получаем дельту (изменение суммы)
-    const delta = await this.txStore.add(this.itemId, type, this.amount);
+    // Добавляем транзакцию с выбранной датой и примечанием, получаем дельту (изменение суммы)
+    const delta = await this.txStore.add(this.itemId, type, this.amount, this.transactionDate, this.notes);
     
     // Обновляем общую сумму item
     await this.itemStore.applyDelta(this.itemId, delta);
     
     // Сбрасываем форму
     this.amount = 0;
+    this.transactionDate = new Date().toISOString();
+    this.notes = '';
   }
 
   /**

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HistoryStore } from '../../features/history/history.store';
 import { HistoryEntry } from '../../features/history/history.model';
+import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 
 /**
  * Компонент страницы истории изменений
@@ -10,7 +11,7 @@ import { HistoryEntry } from '../../features/history/history.model';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LocalDatePipe],
   template: `
     <div class="history-page">
       <div class="history-header">
@@ -40,7 +41,7 @@ import { HistoryEntry } from '../../features/history/history.model';
               </span>
             </div>
             <div class="history-item-time">
-              {{ entry.timestamp | date:'short' }}
+              {{ entry.timestamp | localDate:'short' }}
             </div>
           </div>
         </div>

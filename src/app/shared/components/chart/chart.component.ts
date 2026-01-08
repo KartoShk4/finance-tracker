@@ -60,8 +60,10 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
     // Используем двойной requestAnimationFrame для гарантии, что canvas полностью отрендерен
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (this.canvas?.nativeElement && this.hasData) {
-          this.initChart();
+        if (this.canvas?.nativeElement) {
+          if (this.hasData) {
+            this.initChart();
+          }
         }
       });
     });
@@ -76,15 +78,25 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
       requestAnimationFrame(() => {
         if (!this.chart) {
           // Если график еще не инициализирован, инициализируем его при наличии данных
-          if (this.canvas?.nativeElement && this.hasData) {
-            this.initChart();
+          if (this.canvas?.nativeElement) {
+            if (this.hasData) {
+              this.initChart();
+            }
           }
           return;
         }
 
         // Обновляем данные графика
         if (changes['labels'] || changes['data'] || changes['period']) {
-          this.updateChart();
+          if (this.hasData) {
+            this.updateChart();
+          } else {
+            // Если данных нет, уничтожаем график
+            if (this.chart) {
+              this.chart.destroy();
+              this.chart = null as any;
+            }
+          }
         }
       });
     });
@@ -100,7 +112,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.chart = null as any;
     }
 
-    if (!this.canvas?.nativeElement) {
+    if (!this.canvas?.nativeElement || !this.hasData) {
       return;
     }
 

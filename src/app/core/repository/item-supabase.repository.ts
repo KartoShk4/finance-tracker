@@ -59,9 +59,11 @@ export class ItemSupabaseRepository {
   async getAll(): Promise<Item[]> {
     const { data, error } = await this.supabase.client
       .from('items')
-      .select('*');
+      .select('id, title, category, total, last_updated');
 
     if (error) throw error;
+    
+    // Фильтруем только нужные поля через fromRow
     return (data ?? []).map(row => this.fromRow(row as ItemRow));
   }
 

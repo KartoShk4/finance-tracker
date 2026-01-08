@@ -17,4 +17,7 @@ export interface Transaction {
   
   /** Дата и время транзакции в формате ISO 8601 */
   date: string;
+  
+  /** Примечание к транзакции (необязательное) */
+  notes?: string;
 }

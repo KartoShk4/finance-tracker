@@ -47,15 +47,18 @@ export class TransactionStore {
    * @param item_id - ID категории
    * @param type - тип транзакции (доход/расход)
    * @param amount - сумма транзакции
+   * @param date - дата и время транзакции (ISO string), по умолчанию текущее время
+   * @param notes - примечание к транзакции (необязательное)
    * @returns дельта для обновления общей суммы категории (положительная для дохода, отрицательная для расхода)
    */
-  async add(item_id: string, type: 'income' | 'expense', amount: number): Promise<number> {
+  async add(item_id: string, type: 'income' | 'expense', amount: number, date?: string, notes?: string): Promise<number> {
     const tx: Transaction = {
       id: crypto.randomUUID(),
       item_id,
       type,
       amount,
-      date: new Date().toISOString()
+      date: date || new Date().toISOString(),
+      notes: notes?.trim() || undefined
     };
 
     // Обновляем локальное состояние

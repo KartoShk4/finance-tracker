@@ -20,18 +20,22 @@
           min="0.01"
           step="0.01"
           required />
+        <app-date-time-picker
+          [(ngModel)]="transactionDate"
+          name="transactionDate">
+        </app-date-time-picker>
         <button type="submit">Добавить транзакцию</button>
+      </div>
+      <div class="form-row">
+        <input 
+          type="text" 
+          [(ngModel)]="notes" 
+          name="notes" 
+          placeholder="Примечание (необязательно)"
+          maxlength="500" />
       </div>
     </form>
   </div>
-
-  <!-- График -->
-  <app-chart
-    [labels]="chartData().labels"
-    [data]="chartData().data"
-    [period]="selectedPeriod()"
-    (periodChange)="selectedPeriod.set($event)">
-  </app-chart>
 
   <!-- Список транзакций -->
   <div class="transactions-list">
@@ -39,15 +43,23 @@
       *ngFor="let t of transactions()"
       class="transaction-item">
       <div class="transaction-item-content">
-        <span 
-          class="transaction-type"
-          [class.income]="t.type === 'income'"
-          [class.expense]="t.type === 'expense'">
-          {{ t.type === 'income' ? 'Доход' : 'Расход' }}
-        </span>
-        <span class="transaction-date">
-          {{ t.date | date:'short' }}
-        </span>
+        <div class="transaction-main-info">
+          <span 
+            class="transaction-type"
+            [class.income]="t.type === 'income'"
+            [class.expense]="t.type === 'expense'">
+            {{ t.type === 'income' ? 'Доход' : 'Расход' }}
+          </span>
+          <span class="transaction-date">
+            {{ t.date | localDate:'short' }}
+          </span>
+        </div>
+        <div 
+          *ngIf="t.notes" 
+          class="transaction-notes"
+          [title]="t.notes.length > 50 ? t.notes : ''">
+          {{ t.notes.length > 50 ? (t.notes | slice:0:50) + '...' : t.notes }}
+        </div>
       </div>
       <div class="transaction-item-actions">
         <div 
@@ -70,4 +82,12 @@
       <p>Нет транзакций. Добавьте первую транзакцию для отслеживания финансов.</p>
     </div>
   </div>
+
+  <!-- График транзакций по периодам -->
+  <app-chart
+    [labels]="chartData().labels"
+    [data]="chartData().data"
+    [period]="selectedPeriod()"
+    (periodChange)="selectedPeriod.set($event)">
+  </app-chart>
 </div>
