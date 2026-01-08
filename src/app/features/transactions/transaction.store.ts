@@ -1,28 +1,22 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Transaction } from './transaction.model';
-import { StorageService } from '../../core/storage/storage.service';
+import { TransactionRepository } from '../../core/repository/transaction.repository';
+import { LocalTransactionRepository } from '../../core/repository/local-transaction.repository';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionStore {
-  private readonly KEY = 'transactions';
+  private repo: TransactionRepository = inject(LocalTransactionRepository);
 
-  private storage = inject(StorageService);
-
-  private readonly _tx = signal<Transaction[]>(
-    this.storage.get<Transaction>(this.KEY)
-  );
-
+  private readonly _tx = signal<Transaction[]>(this.repo.load());
   readonly all = computed(() => this._tx());
 
   private persist(list: Transaction[]): void {
     this._tx.set(list);
-    this.storage.set(this.KEY, list);
+    this.repo.save(list);
   }
 
   byItem(itemId: string) {
-    return computed(() =>
-      this._tx().filter(t => t.itemId === itemId)
-    );
+    return computed(() => this._tx().filter(t => t.itemId === itemId));
   }
 
   add(

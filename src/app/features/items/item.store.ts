@@ -1,28 +1,19 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Item } from './item.model';
-import { StorageService } from '../../core/storage/storage.service';
+import { ItemRepository } from '../../core/repository/item.repository';
+import { LocalItemRepository } from '../../core/repository/local-item.repository';
 
 @Injectable({ providedIn: 'root' })
 export class ItemStore {
-  private readonly KEY = 'items';
+  // Пока используем LocalStorage-реализацию
+  private repo: ItemRepository = inject(LocalItemRepository);
 
-  // inject работает ДО инициализации полей
-  private storage = inject(StorageService);
-
-  // теперь storage гарантированно доступен
-  private readonly _items = signal<Item[]>(
-    this.storage.get<Item>(this.KEY)
-  );
-
+  private readonly _items = signal<Item[]>(this.repo.load());
   readonly items = computed(() => this._items());
 
   private persist(items: Item[]): void {
     this._items.set(items);
-    this.storage.set(this.KEY, items);
-  }
-
-  getById(id: string): Item | undefined {
-    return this._items().find(i => i.id === id);
+    this.repo.save(items);
   }
 
   create(title: string, category: 'income' | 'expense'): Item {
