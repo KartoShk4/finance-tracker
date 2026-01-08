@@ -1,0 +1,9 @@
+<h2>История операций</h2>
+
+<ul>
+  <li *ngFor="let t of transactions">
+    {{ t.type }} — {{ t.amount }} — {{ t.date | date:'short' }}
+  </li>
+</ul>
+
+<!-- График подключим следующим шагом -->
