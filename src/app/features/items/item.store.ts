@@ -1,22 +1,24 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Item } from './item.model';
-import { ItemRepository } from '../../core/repository/item.repository';
-import { LocalItemRepository } from '../../core/repository/local-item.repository';
+import { ItemSupabaseRepository } from '../../core/repository/item-supabase.repository';
 
 @Injectable({ providedIn: 'root' })
 export class ItemStore {
-  // Пока используем LocalStorage-реализацию
-  private repo: ItemRepository = inject(LocalItemRepository);
+  private repo = inject(ItemSupabaseRepository);
 
-  private readonly _items = signal<Item[]>(this.repo.load());
+  private readonly _items = signal<Item[]>([]);
   readonly items = computed(() => this._items());
 
-  private persist(items: Item[]): void {
-    this._items.set(items);
-    this.repo.save(items);
+  constructor() {
+    this.load();
   }
 
-  create(title: string, category: 'income' | 'expense'): Item {
+  async load() {
+    const data = await this.repo.getAll();
+    this._items.set(data);
+  }
+
+  async create(title: string, category: 'income' | 'expense') {
     const item: Item = {
       id: crypto.randomUUID(),
       title,
@@ -25,17 +27,18 @@ export class ItemStore {
       lastUpdated: new Date().toISOString()
     };
 
-    this.persist([...this._items(), item]);
-    return item;
+    this._items.update(prev => [...prev, item]);
+    await this.repo.save(this._items());
   }
 
-  applyDelta(id: string, delta: number): void {
-    this.persist(
-      this._items().map(i =>
+  async applyDelta(id: string, delta: number) {
+    this._items.update(prev =>
+      prev.map(i =>
         i.id === id
           ? { ...i, total: i.total + delta, lastUpdated: new Date().toISOString() }
           : i
       )
     );
+    await this.repo.save(this._items());
   }
 }

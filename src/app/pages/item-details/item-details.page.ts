@@ -2,11 +2,11 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-
 import { ItemStore } from '../../features/items/item.store';
 import { TransactionStore } from '../../features/transactions/transaction.store';
-import { ChartComponent } from '../../shared/components/chart/chart.component';
+import { Transaction } from '../../features/transactions/transaction.model';
 import { aggregateByDate } from '../../shared/utils/chart.utils';
+import { ChartComponent } from '../../shared/components/chart/chart.component';
 
 @Component({
   standalone: true,
@@ -30,16 +30,11 @@ export class ItemDetailsPage {
     return { labels: agg.labels, data: agg.data };
   });
 
-  addTransaction(): void {
+  async addTransaction(): Promise<void> {
     if (this.amount <= 0) return;
 
-    const delta = this.txStore.add(
-      this.itemId,
-      this.type,
-      this.amount
-    );
-
-    this.itemStore.applyDelta(this.itemId, delta);
+    const delta = await this.txStore.add(this.itemId, this.type, this.amount);
+    await this.itemStore.applyDelta(this.itemId, delta);
     this.amount = 0;
   }
 }
