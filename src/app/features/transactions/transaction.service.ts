@@ -9,15 +9,22 @@ export class TransactionService {
 
   constructor(private storage: StorageService) {}
 
-  // Получить операции по товару
   getByItem(itemId: string): Transaction[] {
     return this.storage
       .get<Transaction>(this.KEY)
       .filter(t => t.itemId === itemId);
   }
 
-  // Добавить операцию
-  add(itemId: string, type: 'income' | 'expense', amount: number): void {
+  /**
+   * Добавляет транзакцию и возвращает числовую дельту
+   * income  -> +
+   * expense -> -
+   */
+  add(
+    itemId: string,
+    type: 'income' | 'expense',
+    amount: number
+  ): number {
     const transactions = this.storage.get<Transaction>(this.KEY);
 
     transactions.push({
@@ -29,5 +36,7 @@ export class TransactionService {
     });
 
     this.storage.set(this.KEY, transactions);
+
+    return type === 'income' ? amount : -amount;
   }
 }

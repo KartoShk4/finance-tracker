@@ -1,4 +1,22 @@
-<h2>История операций</h2>
+<h2>Добавить операцию</h2>
+
+<form (submit)="addTransaction(); $event.preventDefault()">
+  <input
+    type="number"
+    [(ngModel)]="amount"
+    name="amount"
+    placeholder="Сумма"
+  />
+
+  <select [(ngModel)]="type" name="type">
+    <option value="income">Доход</option>
+    <option value="expense">Расход</option>
+  </select>
+
+  <button>Добавить</button>
+</form>
+
+<hr />
 
 <ul>
   <li *ngFor="let t of transactions">

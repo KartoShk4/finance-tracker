@@ -9,35 +9,36 @@ export class ItemService {
 
   constructor(private storage: StorageService) {}
 
-  // Получить все товары
   getAll(): Item[] {
     return this.storage.get<Item>(this.KEY);
   }
 
-  // Получить один товар по ID
   getById(id: string): Item | undefined {
     return this.getAll().find(i => i.id === id);
   }
 
-  // Создать новый товар
-  create(title: string, category: 'income' | 'expense', amount: number): void {
+  create(title: string, category: 'income' | 'expense'): Item {
     const items = this.getAll();
 
-    items.push({
+    const item: Item = {
       id: crypto.randomUUID(),
       title,
       category,
-      total: amount,
+      total: 0,
       lastUpdated: new Date().toISOString()
-    });
+    };
 
+    items.push(item);
     this.storage.set(this.KEY, items);
+
+    return item;
   }
 
-  // Обновление суммы и даты
-  updateTotal(id: string, delta: number): void {
+  /**
+   * Применяет финансовую дельту к Item
+   */
+  applyDelta(id: string, delta: number): void {
     const items = this.getAll();
-
     const item = items.find(i => i.id === id);
     if (!item) return;
 

@@ -28,18 +28,17 @@ export class HomePage {
 
   // Добавление новой записи
   add(): void {
-    if (!this.title || this.amount <= 0) return;
+    if (!this.title) return;
 
-    this.itemService.create(this.title, this.category, this.amount);
+    this.itemService.create(this.title, this.category);
     this.items = this.itemService.getAll();
 
     // Сброс формы
     this.title = '';
-    this.amount = 0;
   }
 
   // Переход к деталке
   open(item: Item): void {
-    this.router.navigate(['/item', item.id]);
+    this.router.navigate(['/item', item.id]).then();
   }
 }
