@@ -1,12 +1,10 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
-import { ItemService } from '../../features/items/item.service';
-import { TransactionService } from '../../features/transactions/transaction.service';
-import { Transaction } from '../../features/transactions/transaction.model';
-
+import { ItemStore } from '../../features/items/item.store';
+import { TransactionStore } from '../../features/transactions/transaction.store';
 import { ChartComponent } from '../../shared/components/chart/chart.component';
 import { aggregateByDate } from '../../shared/utils/chart.utils';
 
@@ -16,58 +14,32 @@ import { aggregateByDate } from '../../shared/utils/chart.utils';
   templateUrl: './item-details.page.html'
 })
 export class ItemDetailsPage {
+  private route = inject(ActivatedRoute);
+  private txStore = inject(TransactionStore);
+  private itemStore = inject(ItemStore);
 
-  itemId!: string;
-
-  transactions: Transaction[] = [];
+  itemId = this.route.snapshot.paramMap.get('id')!;
 
   amount = 0;
   type: 'income' | 'expense' = 'income';
 
-  labels: string[] = [];
-  data: number[] = [];
+  transactions = this.txStore.byItem(this.itemId);
 
-  constructor(
-    route: ActivatedRoute,
-    private transactionService: TransactionService,
-    private itemService: ItemService
-  ) {
-    const id = route.snapshot.paramMap.get('id');
-    if (!id) return;
+  chartData = computed(() => {
+    const agg = aggregateByDate(this.transactions());
+    return { labels: agg.labels, data: agg.data };
+  });
 
-    this.itemId = id;
-    this.reload();
-  }
-
-  /**
-   * Добавление новой операции
-   */
   addTransaction(): void {
     if (this.amount <= 0) return;
 
-    // 1. Создаём транзакцию и получаем дельту
-    const delta = this.transactionService.add(
+    const delta = this.txStore.add(
       this.itemId,
       this.type,
       this.amount
     );
 
-    // 2. Обновляем Item.total
-    this.itemService.applyDelta(this.itemId, delta);
-
-    // 3. Обновляем UI
+    this.itemStore.applyDelta(this.itemId, delta);
     this.amount = 0;
-    this.reload();
-  }
-
-  /**
-   * Перезагрузка данных и графика
-   */
-  private reload(): void {
-    this.transactions = this.transactionService.getByItem(this.itemId);
-
-    const aggregated = aggregateByDate(this.transactions);
-    this.labels = aggregated.labels;
-    this.data = aggregated.data;
   }
 }

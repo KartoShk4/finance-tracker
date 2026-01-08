@@ -1,6 +1,5 @@
 <form (submit)="add(); $event.preventDefault()">
   <input [(ngModel)]="title" name="title" placeholder="Название" />
-  <input [(ngModel)]="amount" name="amount" type="number" />
   <select [(ngModel)]="category" name="category">
     <option value="income">Доход</option>
     <option value="expense">Расход</option>
@@ -9,7 +8,8 @@
 </form>
 
 <ul>
-  <li *ngFor="let item of items" (click)="open(item)">
+  <li *ngFor="let item of items()"
+      (click)="open(item.id)">
     {{ item.title }} — {{ item.total }} — {{ item.lastUpdated | date:'short' }}
   </li>
 </ul>

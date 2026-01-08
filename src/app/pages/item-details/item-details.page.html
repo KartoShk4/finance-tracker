@@ -1,30 +1,19 @@
-<h2>Добавить операцию</h2>
-
 <form (submit)="addTransaction(); $event.preventDefault()">
-  <input
-    type="number"
-    [(ngModel)]="amount"
-    name="amount"
-    placeholder="Сумма"
-  />
-
+  <input type="number" [(ngModel)]="amount" name="amount" />
   <select [(ngModel)]="type" name="type">
     <option value="income">Доход</option>
     <option value="expense">Расход</option>
   </select>
-
   <button>Добавить</button>
 </form>
 
-<hr />
-
 <ul>
-  <li *ngFor="let t of transactions">
+  <li *ngFor="let t of transactions()">
     {{ t.type }} — {{ t.amount }} — {{ t.date | date:'short' }}
   </li>
 </ul>
 
 <app-chart
-  [labels]="labels"
-  [data]="data">
+  [labels]="chartData().labels"
+  [data]="chartData().data">
 </app-chart>
