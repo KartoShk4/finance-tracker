@@ -51,14 +51,15 @@ export class TransactionStore {
    * @param notes - примечание к транзакции (необязательное)
    * @returns дельта для обновления общей суммы категории (положительная для дохода, отрицательная для расхода)
    */
-  async add(item_id: string, type: 'income' | 'expense', amount: number, date?: string, notes?: string): Promise<number> {
+  async add(item_id: string, type: 'income' | 'expense', amount: number, date?: string, notes?: string, subcategory_id?: string): Promise<number> {
     const tx: Transaction = {
       id: crypto.randomUUID(),
       item_id,
       type,
       amount,
       date: date || new Date().toISOString(),
-      notes: notes?.trim() || undefined
+      notes: notes?.trim() || undefined,
+      subcategory_id: subcategory_id || undefined
     };
 
     // Обновляем локальное состояние
@@ -108,5 +109,41 @@ export class TransactionStore {
     });
 
     return delta;
+  }
+
+  /**
+   * Обновление существующей транзакции
+   * @param id - ID транзакции
+   * @param updates - объект с полями для обновления (amount, date, notes)
+   * @returns новая дельта для обновления общей суммы категории
+   */
+  async update(id: string, updates: { amount?: number; date?: string; notes?: string; subcategory_id?: string }): Promise<number> {
+    const tx = this._tx().find(t => t.id === id);
+    if (!tx) return 0;
+
+    // Сохраняем старую дельту для отката
+    const oldDelta = tx.type === 'income' ? -tx.amount : tx.amount;
+
+    // Обновляем транзакцию
+    const updatedTx: Transaction = {
+      ...tx,
+      ...(updates.amount !== undefined && { amount: updates.amount }),
+      // Убеждаемся, что дата в формате ISO string
+      ...(updates.date !== undefined && { date: updates.date ? new Date(updates.date).toISOString() : tx.date }),
+      ...(updates.notes !== undefined && { notes: updates.notes?.trim() || undefined }),
+      ...(updates.subcategory_id !== undefined && { subcategory_id: updates.subcategory_id || undefined })
+    };
+
+    // Обновляем локальное состояние
+    this._tx.update(prev => prev.map(t => t.id === id ? updatedTx : t));
+
+    // Сохраняем в базу данных
+    await this.repo.save(this._tx());
+
+    // Вычисляем новую дельту
+    const newDelta = updatedTx.type === 'income' ? updatedTx.amount : -updatedTx.amount;
+
+    // Возвращаем разницу для обновления общей суммы категории
+    return newDelta + oldDelta;
   }
 }

@@ -9,6 +9,9 @@ export interface Transaction {
   /** ID категории, к которой относится транзакция (foreign key) */
   item_id: string;
   
+  /** ID подкатегории, к которой относится транзакция (необязательное) */
+  subcategory_id?: string;
+  
   /** Тип транзакции: доход или расход */
   type: 'income' | 'expense';
   

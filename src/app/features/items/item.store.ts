@@ -106,4 +106,34 @@ export class ItemStore {
     // Сохраняем в базу данных
     await this.repo.save(this._items());
   }
+
+  /**
+   * Переключение статуса избранного для категории
+   * @param id - ID категории
+   */
+  async toggleFavorite(id: string): Promise<void> {
+    this._items.update(prev =>
+      prev.map(i =>
+        i.id === id
+          ? { ...i, isFavorite: !i.isFavorite }
+          : i
+      )
+    );
+    
+    await this.repo.save(this._items());
+  }
+
+  /**
+   * Обновление порядка сортировки категорий
+   * @param items - массив категорий в новом порядке
+   */
+  async updateSortOrder(items: Item[]): Promise<void> {
+    const updated = items.map((item, index) => ({
+      ...item,
+      sortOrder: index
+    }));
+    
+    this._items.set(updated);
+    await this.repo.save(this._items());
+  }
 }

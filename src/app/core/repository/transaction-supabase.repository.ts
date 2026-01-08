@@ -2,135 +2,79 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Transaction } from '../../features/transactions/transaction.model';
 
-/**
- * Репозиторий для работы с транзакциями в Supabase
- * Обеспечивает сохранение и загрузку транзакций с валидацией foreign key
- */
 @Injectable({ providedIn: 'root' })
 export class TransactionSupabaseRepository {
   constructor(private supabase: SupabaseService) {}
 
-  /**
-   * Получает все транзакции из базы данных
-   * @returns массив всех транзакций
-   */
+  // Получаем все транзакции
   async getAll(): Promise<Transaction[]> {
-    // Выбираем только поля, которые точно есть в БД (без notes, если колонка не создана)
     const { data, error } = await this.supabase.client
       .from('transactions')
-      .select('id, item_id, type, amount, date');
+      .select('id,item_id,subcategory_id,type,amount,date,notes'); // Включаем subcategory_id и notes
 
     if (error) throw error;
-    
-    // Фильтруем только нужные поля
-    return (data ?? []).map((row: any) => ({
-      id: row.id,
-      item_id: row.item_id,
-      type: row.type,
-      amount: row.amount,
-      date: row.date
-      // notes исключены, если колонка отсутствует
-    })) as Transaction[];
+    return (data ?? []) as Transaction[];
   }
 
-  /**
-   * Сохраняет список транзакций в базу данных
-   * Использует upsert для обновления существующих и вставки новых записей
-   * Валидирует наличие всех item_id в таблице items перед сохранением
-   * @param list - массив транзакций для сохранения
-   */
+  // Сохраняем все транзакции (используем upsert для обновления существующих и вставки новых)
   async save(list: Transaction[]): Promise<void> {
-    // Если список пустой, удаляем все транзакции
-    if (list.length === 0) {
-      const { data: existingData, error: selectError } = await this.supabase.client
+    try {
+      // Если список пустой, удаляем все транзакции
+      if (list.length === 0) {
+        const { data: existingData, error: selectError } = await this.supabase.client
+          .from('transactions')
+          .select('id');
+        
+        if (selectError) throw selectError;
+        
+        if (existingData && existingData.length > 0) {
+          const idsToDelete = existingData.map(tx => tx.id);
+          const { error: deleteError } = await this.supabase.client
+            .from('transactions')
+            .delete()
+            .in('id', idsToDelete);
+          
+          if (deleteError) throw deleteError;
+        }
+        return;
+      }
+
+      // Используем upsert для обновления существующих и вставки новых записей
+      const { error: upsertError } = await this.supabase.client
+        .from('transactions')
+        .upsert(list, { onConflict: 'id' });
+      
+      if (upsertError) {
+        console.error('Upsert error:', upsertError);
+        console.error('Trying to upsert:', list);
+        throw upsertError;
+      }
+      
+      // Удаляем транзакции, которых нет в новом списке
+      const newIds = new Set(list.map(t => t.id));
+      const { data: allTransactions, error: selectError } = await this.supabase.client
         .from('transactions')
         .select('id');
       
       if (selectError) throw selectError;
       
-      if (existingData && existingData.length > 0) {
-        const idsToDelete = existingData.map(item => item.id);
-        const { error: deleteError } = await this.supabase.client
-          .from('transactions')
-          .delete()
-          .in('id', idsToDelete);
+      if (allTransactions) {
+        const idsToDelete = allTransactions
+          .map(t => t.id)
+          .filter(id => !newIds.has(id));
         
-        if (deleteError) throw deleteError;
-      }
-      return;
-    }
-    
-    // Проверяем, что все item_id существуют в таблице items
-    // Это необходимо для соблюдения foreign key constraint
-    const uniqueItemIds = [...new Set(list.map(t => t.item_id))];
-    
-    if (uniqueItemIds.length > 0) {
-      const { data: existingItems, error: itemsError } = await this.supabase.client
-        .from('items')
-        .select('id')
-        .in('id', uniqueItemIds);
-      
-      if (itemsError) throw itemsError;
-      
-      const existingItemIds = new Set((existingItems || []).map(item => item.id));
-      const missingItemIds = uniqueItemIds.filter(id => !existingItemIds.has(id));
-      
-      // Если есть транзакции с несуществующими item_id, фильтруем их
-      if (missingItemIds.length > 0) {
-        console.warn('Some item_ids do not exist in items table:', missingItemIds);
-        console.warn('Make sure items are saved to Supabase before creating transactions');
-        list = list.filter(t => existingItemIds.has(t.item_id));
-        
-        if (list.length === 0) {
-          console.warn('No valid transactions to save after filtering');
-          return;
+        if (idsToDelete.length > 0) {
+          const { error: deleteError } = await this.supabase.client
+            .from('transactions')
+            .delete()
+            .in('id', idsToDelete);
+          
+          if (deleteError) throw deleteError;
         }
       }
-    }
-    
-    // Фильтруем только нужные поля перед отправкой (убираем created_at и другие лишние поля)
-    // Исключаем notes, если колонка в БД не создана, чтобы избежать 400 Bad Request
-    const cleanList = list.map(tx => ({
-      id: tx.id,
-      item_id: tx.item_id,
-      type: tx.type,
-      amount: tx.amount,
-      date: tx.date
-    }));
-    
-    // Используем upsert для обновления существующих и вставки новых записей
-    const { error: upsertError } = await this.supabase.client
-      .from('transactions')
-      .upsert(cleanList, { onConflict: 'id' });
-    
-    if (upsertError) {
-      console.error('Upsert error:', upsertError);
-      console.error('Trying to upsert:', list);
-      throw upsertError;
-    }
-    
-    // Удаляем транзакции, которых нет в новом списке
-    // Это обеспечивает синхронизацию локального состояния с базой данных
-    const newIds = new Set(list.map(t => t.id));
-    const { data: allTransactions, error: selectError } = await this.supabase.client
-      .from('transactions')
-      .select('id');
-    
-    if (selectError) throw selectError;
-    
-    if (allTransactions) {
-      const idsToDelete = allTransactions
-        .map(t => t.id)
-        .filter(id => !newIds.has(id));
-      
-      if (idsToDelete.length > 0) {
-        const { error: deleteError } = await this.supabase.client
-          .from('transactions')
-          .delete()
-          .in('id', idsToDelete);
-        
-        if (deleteError) throw deleteError;
-      }
+    } catch (error) {
+      console.error('Error saving transactions:', error);
+      throw error;
     }
   }
 }

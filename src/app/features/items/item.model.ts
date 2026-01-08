@@ -17,4 +17,10 @@ export interface Item {
   
   /** Дата и время последнего обновления в формате ISO 8601 */
   lastUpdated: string;
+  
+  /** Является ли категория избранной */
+  isFavorite?: boolean;
+  
+  /** Порядок сортировки (для drag-and-drop) */
+  sortOrder?: number;
 }

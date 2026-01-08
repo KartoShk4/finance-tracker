@@ -1,15 +1,27 @@
 <div class="item-details-page">
-  <!-- Кнопка назад -->
-  <a routerLink="/" class="back-button">← Назад к списку</a>
+  <!-- Заголовок с кнопками -->
+  <div class="page-header">
+    <a routerLink="/" class="back-button">← Назад к списку</a>
+    <button 
+      class="delete-category-button"
+      (click)="openDeleteCategoryModal()"
+      title="Удалить категорию">
+      Удалить категорию
+    </button>
+  </div>
 
   <!-- Форма добавления транзакции -->
   <div class="transaction-form">
-    <div class="form-info" *ngIf="currentItem()">
-      <span class="category-badge" [class.income]="currentItem()!.category === 'income'" [class.expense]="currentItem()!.category === 'expense'">
-        {{ currentItem()!.category === 'income' ? 'Доход' : 'Расход' }}
-      </span>
-      <span class="category-title">{{ currentItem()!.title }}</span>
+    <div class="form-header" *ngIf="currentItem()">
+      <div class="category-info">
+        <span class="category-badge" [class.income]="currentItem()!.category === 'income'" [class.expense]="currentItem()!.category === 'expense'">
+          {{ currentItem()!.category === 'income' ? 'Доход' : 'Расход' }}
+        </span>
+        <h2 class="category-title">{{ currentItem()!.title }}</h2>
+      </div>
     </div>
+
+    <!-- Форма транзакции -->
     <form (submit)="addTransaction(); $event.preventDefault()">
       <div class="form-row">
         <input 
@@ -24,8 +36,9 @@
           [(ngModel)]="transactionDate"
           name="transactionDate">
         </app-date-time-picker>
-        <button type="submit">Добавить транзакцию</button>
+        <button type="submit">Добавить</button>
       </div>
+      
       <div class="form-row">
         <input 
           type="text" 
@@ -35,46 +48,149 @@
           maxlength="500" />
       </div>
     </form>
+
+    <!-- Блок подкатегорий -->
+    <div class="subcategories-section">
+      <div class="subcategories-header">
+        <label class="subcategories-title">Подкатегория (необязательно)</label>
+        <span class="subcategories-count" *ngIf="subcategories().length > 0">
+          {{ subcategories().length }} {{ subcategories().length === 1 ? 'подкатегория' : 'подкатегорий' }}
+        </span>
+      </div>
+
+      <!-- Быстрый выбор подкатегорий -->
+      <div *ngIf="subcategories().length > 0" class="subcategories-tags">
+        <button
+          type="button"
+          class="subcategory-tag"
+          [class.active]="selectedSubcategoryId === null"
+          (click)="selectedSubcategoryId = null">
+          Без подкатегории
+        </button>
+        <button
+          *ngFor="let sub of subcategories()"
+          type="button"
+          class="subcategory-tag"
+          [class.active]="selectedSubcategoryId === sub.id"
+          (click)="selectedSubcategoryId = sub.id">
+          {{ sub.title }}
+        </button>
+        <button
+          type="button"
+          class="subcategory-tag subcategory-tag-create"
+          [class.active]="selectedSubcategoryId === '__create_new__'"
+          (click)="selectedSubcategoryId = '__create_new__'">
+          + Создать новую
+        </button>
+      </div>
+
+      <!-- Форма создания новой подкатегории -->
+      <div *ngIf="selectedSubcategoryId === '__create_new__'" class="create-subcategory-form">
+        <input 
+          type="text" 
+          [(ngModel)]="newSubcategoryName" 
+          name="newSubcategoryName"
+          placeholder="Введите название новой подкатегории"
+          maxlength="100"
+          class="subcategory-name-input"
+          autofocus />
+      </div>
+    </div>
   </div>
+
 
   <!-- Список транзакций -->
   <div class="transactions-list">
     <div 
       *ngFor="let t of transactions()"
       class="transaction-item">
-      <div class="transaction-item-content">
-        <div class="transaction-main-info">
-          <span 
-            class="transaction-type"
+      
+      <!-- Режим просмотра -->
+      <ng-container *ngIf="editingTransactionId !== t.id">
+        <div class="transaction-item-content">
+          <div class="transaction-main-info">
+            <div class="transaction-header">
+              <span class="transaction-date">
+                {{ t.date | localDate:'short' }}
+              </span>
+              <span 
+                *ngIf="t.subcategory_id"
+                class="transaction-subcategory-badge">
+                {{ getSubcategoryName(t.subcategory_id) }}
+              </span>
+            </div>
+            <div 
+              *ngIf="t.notes" 
+              class="transaction-notes"
+              [title]="t.notes.length > 50 ? t.notes : ''">
+              {{ t.notes.length > 50 ? (t.notes | slice:0:50) + '...' : t.notes }}
+            </div>
+          </div>
+        </div>
+        <div class="transaction-item-actions">
+          <div 
+            class="transaction-amount"
             [class.income]="t.type === 'income'"
             [class.expense]="t.type === 'expense'">
-            {{ t.type === 'income' ? 'Доход' : 'Расход' }}
-          </span>
-          <span class="transaction-date">
-            {{ t.date | localDate:'short' }}
-          </span>
+            {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | number:'1.2-2' }} ₽
+          </div>
+          <button 
+            class="edit-button"
+            (click)="startEdit(t)"
+            title="Редактировать транзакцию">
+            ✎
+          </button>
+          <button 
+            class="delete-button"
+            (click)="deleteTransaction(t.id)"
+            title="Удалить транзакцию">
+            ×
+          </button>
         </div>
-        <div 
-          *ngIf="t.notes" 
-          class="transaction-notes"
-          [title]="t.notes.length > 50 ? t.notes : ''">
-          {{ t.notes.length > 50 ? (t.notes | slice:0:50) + '...' : t.notes }}
+      </ng-container>
+
+      <!-- Режим редактирования -->
+      <ng-container *ngIf="editingTransactionId === t.id">
+        <div class="transaction-edit-form">
+          <form (submit)="saveEdit(t.id); $event.preventDefault()">
+            <div class="edit-form-row">
+              <input 
+                type="number" 
+                [(ngModel)]="editAmount" 
+                name="editAmount"
+                placeholder="Сумма"
+                min="0.01"
+                step="0.01"
+                required />
+              <app-date-time-picker
+                [(ngModel)]="editDate"
+                name="editDate">
+              </app-date-time-picker>
+            </div>
+            <div class="edit-form-row">
+              <select 
+                [(ngModel)]="editSubcategoryId" 
+                name="editSubcategoryId"
+                class="subcategory-select">
+                <option [value]="null">Без подкатегории</option>
+                <option *ngFor="let sub of subcategories()" [value]="sub.id">
+                  {{ sub.title }}
+                </option>
+              </select>
+              <input 
+                type="text" 
+                [(ngModel)]="editNotes" 
+                name="editNotes"
+                placeholder="Примечание (необязательно)"
+                maxlength="500" />
+            </div>
+            <div class="edit-form-actions">
+              <button type="submit" class="save-button">Сохранить</button>
+              <button type="button" class="cancel-button" (click)="cancelEdit()">Отмена</button>
+            </div>
+          </form>
         </div>
-      </div>
-      <div class="transaction-item-actions">
-        <div 
-          class="transaction-amount"
-          [class.income]="t.type === 'income'"
-          [class.expense]="t.type === 'expense'">
-          {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | number:'1.2-2' }} ₽
-        </div>
-        <button 
-          class="delete-button"
-          (click)="deleteTransaction(t.id)"
-          title="Удалить транзакцию">
-          ×
-        </button>
-      </div>
+      </ng-container>
     </div>
     
     <!-- Пустое состояние -->
@@ -90,4 +206,28 @@
     [period]="selectedPeriod()"
     (periodChange)="selectedPeriod.set($event)">
   </app-chart>
+
+  <!-- Модальное окно удаления категории -->
+  <app-modal
+    [isOpen]="showDeleteCategoryModal"
+    title="Удаление категории"
+    [confirmDanger]="true"
+    confirmText="Удалить"
+    (confirm)="confirmDeleteCategory()"
+    (closeEvent)="showDeleteCategoryModal = false">
+    <p>Вы уверены, что хотите удалить категорию <strong>{{ currentItem()?.title }}</strong>?</p>
+    <p style="color: var(--color-expense); margin-top: var(--space-md);">Все транзакции и подкатегории также будут удалены. Это действие нельзя отменить.</p>
+  </app-modal>
+
+  <!-- Модальное окно удаления подкатегории -->
+  <app-modal
+    [isOpen]="showDeleteSubcategoryModal"
+    title="Удаление подкатегории"
+    [confirmDanger]="true"
+    confirmText="Удалить"
+    (confirm)="confirmDeleteSubcategory()"
+    (closeEvent)="showDeleteSubcategoryModal = false">
+    <p>Вы уверены, что хотите удалить эту подкатегорию?</p>
+    <p style="color: var(--color-expense); margin-top: var(--space-md);">Это действие нельзя отменить.</p>
+  </app-modal>
 </div>

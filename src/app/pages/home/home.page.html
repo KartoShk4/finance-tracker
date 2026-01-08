@@ -1,14 +1,4 @@
 <div class="home-page">
-  <div class="home-period-controls">
-    <button
-      *ngFor="let p of periods"
-      class="home-period-button"
-      [class.active]="selectedPeriod() === p.value"
-      (click)="selectedPeriod.set(p.value)">
-      {{ p.label }}
-    </button>
-  </div>
-
   <div class="home-layout">
     <div class="home-content">
       <!-- Форма добавления нового item -->
@@ -30,32 +20,51 @@
         </form>
       </div>
 
+      <!-- Фильтр по типу категории -->
+      <div class="home-filter">
+        <button
+          class="filter-button"
+          [class.active]="categoryFilter() === 'all'"
+          (click)="categoryFilter.set('all')">
+          Все
+        </button>
+        <button
+          class="filter-button"
+          [class.active]="categoryFilter() === 'income'"
+          (click)="categoryFilter.set('income')">
+          Доходы
+        </button>
+        <button
+          class="filter-button"
+          [class.active]="categoryFilter() === 'expense'"
+          (click)="categoryFilter.set('expense')">
+          Расходы
+        </button>
+      </div>
+
       <!-- Список items -->
-      <div class="items-list">
+      <div class="items-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
         <div 
-          *ngFor="let item of items()"
-          class="items-item">
+          *ngFor="let item of items(); trackBy: trackByItemId"
+          class="items-item"
+          [class.favorite]="item.isFavorite"
+          cdkDrag>
           <div class="items-item-content" (click)="open(item.id)">
-            <div class="items-item-title">{{ item.title }}</div>
-            <div class="items-item-meta">
-              <span class="items-item-date">
-                Обновлено: {{ item.lastUpdated | localDate:'short' }}
-              </span>
-            </div>
-          </div>
-          <div class="items-item-actions">
-            <div 
-              class="items-item-amount"
-              [class.income]="item.category === 'income'"
-              [class.expense]="item.category === 'expense'">
-              {{ item.total | number:'1.2-2' }} ₽
-            </div>
             <button 
-              class="delete-button"
-              (click)="delete(item.id, $event)"
-              title="Удалить категорию">
-              ×
+              class="favorite-button"
+              [class.active]="item.isFavorite"
+              (click)="toggleFavorite(item.id, $event)"
+              title="{{ item.isFavorite ? 'Убрать из избранного' : 'Добавить в избранное' }}">
+              ★
             </button>
+            <div class="items-item-info">
+              <div class="items-item-title">{{ item.title }}</div>
+              <div class="items-item-meta">
+                <span class="items-item-date">
+                  Обновлено: {{ item.lastUpdated | localDate:'short' }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -69,6 +78,15 @@
     <!-- График для десктопа -->
     <div class="home-chart desktop-chart">
       <div class="home-charts-container">
+        <div class="home-period-controls">
+          <button
+            *ngFor="let p of periods"
+            class="home-period-button"
+            [class.active]="selectedPeriod() === p.value"
+            (click)="selectedPeriod.set(p.value)">
+            {{ p.label }}
+          </button>
+        </div>
         <app-pie-chart
           [income]="statistics().income"
           [expense]="statistics().expense">
@@ -84,6 +102,15 @@
     </button>
     <div class="mobile-chart-panel" [class.open]="showMobileChart">
       <div class="mobile-charts-container">
+        <div class="home-period-controls">
+          <button
+            *ngFor="let p of periods"
+            class="home-period-button"
+            [class.active]="selectedPeriod() === p.value"
+            (click)="selectedPeriod.set(p.value)">
+            {{ p.label }}
+          </button>
+        </div>
         <app-pie-chart
           [income]="statistics().income"
           [expense]="statistics().expense">

@@ -22,7 +22,7 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
   template: `
     <div class="pie-chart-container">
       <h3 class="pie-chart-title">Общая статистика</h3>
-      <div class="pie-chart-wrapper">
+      <div class="pie-chart-wrapper" [class.hidden]="!hasData">
         <canvas #canvas></canvas>
       </div>
       <div *ngIf="!hasData" class="pie-chart-empty">
@@ -53,6 +53,10 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
       display: flex;
       align-items: center;
       justify-content: center;
+      
+      &.hidden {
+        display: none;
+      }
     }
 
     .pie-chart-empty {
@@ -93,13 +97,12 @@ export class PieChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (this.canvas?.nativeElement && this.hasData) {
-          this.initChart();
-        }
-      });
-    });
+    // Используем setTimeout для гарантии, что DOM полностью готов
+    setTimeout(() => {
+      if (this.canvas?.nativeElement && this.hasData) {
+        this.initChart();
+      }
+    }, 0);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -136,13 +139,17 @@ export class PieChartComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
-    const config: ChartConfiguration = {
-      type: 'pie',
+    // Убеждаемся, что значения не undefined
+    const incomeValue = this.income || 0;
+    const expenseValue = Math.abs(this.expense || 0);
+
+    const config: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut', // Используем тип doughnut для создания donut chart (bagel)
       data: {
         labels: ['Доходы', 'Расходы'],
         datasets: [
           {
-            data: [this.income, Math.abs(this.expense)],
+            data: [incomeValue, expenseValue],
             backgroundColor: [
               'rgba(16, 185, 129, 0.8)',
               'rgba(239, 68, 68, 0.8)'
@@ -157,6 +164,7 @@ export class PieChartComponent implements AfterViewInit, OnChanges, OnDestroy {
         ]
       },
       options: {
+        cutout: '60%', // Размер внутреннего отверстия для donut chart
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -225,7 +233,19 @@ export class PieChartComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     try {
-      this.chart.data.datasets[0].data = [this.income, Math.abs(this.expense)];
+      // Обновляем данные графика
+      const incomeValue = this.income || 0;
+      const expenseValue = Math.abs(this.expense || 0);
+      
+      this.chart.data.datasets[0].data = [incomeValue, expenseValue];
+      
+      // Если данных нет, уничтожаем график
+      if (!this.hasData) {
+        this.chart.destroy();
+        this.chart = null as any;
+        return;
+      }
+      
       this.chart.update('active');
     } catch (error) {
       console.error('Error updating pie chart:', error);

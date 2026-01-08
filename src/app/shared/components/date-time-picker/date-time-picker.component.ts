@@ -160,6 +160,14 @@ export class DateTimePickerComponent implements ControlValueAccessor, AfterViewI
         this.setValue(iso, true);
       }
     });
+    
+    // Устанавливаем начальное значение в поле ввода
+    if (this._value) {
+      const date = new Date(this._value);
+      if (!isNaN(date.getTime())) {
+        this.dateInput.nativeElement.value = this.formatDisplay(date);
+      }
+    }
   }
 
   private setValue(value: string, emit = false): void {
@@ -184,8 +192,15 @@ export class DateTimePickerComponent implements ControlValueAccessor, AfterViewI
   writeValue(value: string): void {
     if (value) {
       this._value = value;
+      // Обновляем пикер, если он уже инициализирован
+      if (this.picker && this.dateInput?.nativeElement) {
+        const date = new Date(this._value);
+        if (!isNaN(date.getTime())) {
+          this.picker.selectDate(date, { silent: true });
+          this.dateInput.nativeElement.value = this.formatDisplay(date);
+        }
+      }
     }
-    this.picker?.selectDate(new Date(this._value), { silent: true });
   }
 
   registerOnChange(fn: (value: string) => void): void {

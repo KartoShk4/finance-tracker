@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HistoryStore } from '../../features/history/history.store';
 import { HistoryEntry } from '../../features/history/history.model';
 import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 
 /**
  * Компонент страницы истории изменений
@@ -11,13 +12,13 @@ import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterLink, LocalDatePipe],
+  imports: [CommonModule, RouterLink, LocalDatePipe, ModalComponent],
   template: `
     <div class="history-page">
       <div class="history-header">
         <a routerLink="/" class="back-button">← Назад</a>
         <h2>История изменений</h2>
-        <button class="clear-button" (click)="clearHistory()">Очистить</button>
+        <button class="clear-button" (click)="openClearHistoryModal()">Очистить</button>
       </div>
 
       <div class="history-list">
@@ -31,17 +32,13 @@ import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
             <span *ngIf="entry.action === 'deleted'">×</span>
           </div>
           <div class="history-item-content">
-            <div class="history-item-title">{{ entry.entityTitle }}</div>
-            <div class="history-item-details">
-              <span class="history-item-type">
-                {{ entry.entityType === 'item' ? 'Категория' : 'Транзакция' }}
+            <div class="history-item-main">
+              <span class="history-item-title">{{ entry.entityTitle }}</span>
+              <span class="history-item-meta">
+                {{ entry.entityType === 'item' ? 'Категория' : 'Транзакция' }} • 
+                {{ entry.action === 'created' ? 'создана' : 'удалена' }} • 
+                {{ entry.timestamp | localDate:'short' }}
               </span>
-              <span class="history-item-action">
-                {{ entry.action === 'created' ? 'создана' : 'удалена' }}
-              </span>
-            </div>
-            <div class="history-item-time">
-              {{ entry.timestamp | localDate:'short' }}
             </div>
           </div>
         </div>
@@ -50,6 +47,18 @@ import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
           <p>История пуста</p>
         </div>
       </div>
+
+      <!-- Модальное окно очистки истории -->
+      <app-modal
+        [isOpen]="showClearHistoryModal()"
+        title="Очистка истории"
+        [confirmDanger]="true"
+        confirmText="Очистить"
+        (confirm)="confirmClearHistory()"
+        (closeEvent)="showClearHistoryModal.set(false)">
+        <p>Вы уверены, что хотите очистить всю историю изменений?</p>
+        <p style="color: var(--color-expense); margin-top: var(--space-md);">Это действие нельзя отменить.</p>
+      </app-modal>
     </div>
   `,
   styles: [`
@@ -104,10 +113,10 @@ import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
       background-color: var(--color-bg-card);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      padding: var(--space-md);
+      padding: var(--space-sm) var(--space-md);
       display: flex;
-      gap: var(--space-md);
-      align-items: flex-start;
+      gap: var(--space-sm);
+      align-items: center;
       transition: all var(--transition-fast);
     }
 
@@ -125,13 +134,13 @@ import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
     }
 
     .history-item-icon {
-      width: 32px;
-      height: 32px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 0.875rem;
       font-weight: 600;
       flex-shrink: 0;
     }
@@ -148,26 +157,26 @@ import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 
     .history-item-content {
       flex: 1;
+      min-width: 0;
+    }
+
+    .history-item-main {
       display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
     }
 
     .history-item-title {
       font-weight: 500;
       color: var(--color-text-primary);
-    }
-
-    .history-item-details {
-      display: flex;
-      gap: var(--space-sm);
       font-size: 0.875rem;
-      color: var(--color-text-secondary);
     }
 
-    .history-item-time {
+    .history-item-meta {
       font-size: 0.75rem;
       color: var(--color-text-tertiary);
+      white-space: nowrap;
     }
 
     .history-empty {
@@ -190,13 +199,22 @@ export class HistoryPage {
   /** История изменений */
   history = this.historyStore.history;
 
+  /** Состояние модального окна очистки истории */
+  showClearHistoryModal = signal(false);
+
+  /**
+   * Открытие модального окна очистки истории
+   */
+  openClearHistoryModal(): void {
+    this.showClearHistoryModal.set(true);
+  }
+
   /**
    * Очистка истории
    */
-  clearHistory(): void {
-    if (confirm('Вы уверены, что хотите очистить всю историю?')) {
-      this.historyStore.clear();
-    }
+  confirmClearHistory(): void {
+    this.historyStore.clear();
+    this.showClearHistoryModal.set(false);
   }
 }
 

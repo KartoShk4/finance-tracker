@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ItemStore } from '../../features/items/item.store';
 import { TransactionStore } from '../../features/transactions/transaction.store';
 import { PieChartComponent } from '../../shared/components/pie-chart/pie-chart.component';
@@ -14,7 +15,7 @@ import { PeriodType } from '../../shared/utils/chart.utils';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, PieChartComponent, LocalDatePipe],
+  imports: [CommonModule, FormsModule, DragDropModule, PieChartComponent, LocalDatePipe],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
@@ -29,8 +30,36 @@ export class HomePage {
   /** Тип категории (доход/расход) */
   category: 'income' | 'expense' = 'income';
 
-  /** Список всех категорий */
-  items = this.itemStore.items;
+  /** Фильтр по типу категории (все/доходы/расходы) */
+  categoryFilter = signal<'all' | 'income' | 'expense'>('all');
+
+  /** Отфильтрованный и отсортированный список категорий */
+  items = computed(() => {
+    let filtered = this.itemStore.items();
+    
+    // Фильтрация по типу
+    if (this.categoryFilter() !== 'all') {
+      filtered = filtered.filter(item => item.category === this.categoryFilter());
+    }
+    
+    // Сортировка: сначала избранные, затем по sortOrder, затем по дате обновления
+    return filtered.sort((a, b) => {
+      // Избранные всегда сверху
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+      
+      // Если обе избранные или обе не избранные, сортируем внутри группы
+      // Сначала по sortOrder (если есть)
+      if (a.sortOrder !== undefined && b.sortOrder !== undefined) {
+        return a.sortOrder - b.sortOrder;
+      }
+      if (a.sortOrder !== undefined) return -1;
+      if (b.sortOrder !== undefined) return 1;
+      
+      // Затем по дате обновления (новые/измененные сверху)
+      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+    });
+  });
 
   /** Все транзакции */
   allTransactions = this.txStore.all;
@@ -88,22 +117,51 @@ export class HomePage {
     this.router.navigate(['/item', id]);
   }
 
+
   /**
-   * Удаление категории
+   * Переключение избранного статуса категории
    * @param id - ID категории
    * @param event - событие клика (для предотвращения всплытия)
    */
-  async delete(id: string, event: Event): Promise<void> {
+  async toggleFavorite(id: string, event: Event): Promise<void> {
     event.stopPropagation();
-    if (confirm('Вы уверены, что хотите удалить эту категорию? Все транзакции также будут удалены.')) {
-      await this.itemStore.delete(id);
-    }
+    await this.itemStore.toggleFavorite(id);
   }
 
   /**
-   * Фильтрация транзакций по выбранному периоду (от начала периода до текущего момента)
+   * Функция отслеживания для ngFor (улучшает производительность)
+   * @param index - индекс элемента
+   * @param item - элемент списка
+   * @returns уникальный идентификатор
+   */
+  trackByItemId(index: number, item: { id: string }): string {
+    return item.id;
+  }
+
+  /**
+   * Обработчик события перетаскивания категорий
+   * @param event - событие drag-and-drop
+   */
+  async onDrop(event: CdkDragDrop<any[]>): Promise<void> {
+    const currentItems = [...this.items()];
+    moveItemInArray(currentItems, event.previousIndex, event.currentIndex);
+    await this.itemStore.updateSortOrder(currentItems);
+  }
+
+  /**
+   * Фильтрация транзакций по выбранному периоду
+   * Для периода "год" показываем все транзакции за все время
    */
   private filterByPeriod(transactions: ReturnType<typeof this.allTransactions>, period: PeriodType) {
+    // Для периода "год" показываем все транзакции
+    if (period === 'year') {
+      return transactions.filter(tx => {
+        const d = new Date(tx.date);
+        return !isNaN(d.getTime());
+      });
+    }
+
+    // Для остальных периодов фильтруем от начала периода до текущего момента
     const now = new Date();
     const start = this.getPeriodStart(now, period);
 
@@ -115,7 +173,8 @@ export class HomePage {
   }
 
   /**
-   * Получить начало периода (день, неделя, месяц, год)
+   * Получить начало периода (день, неделя, месяц)
+   * Для периода "год" не используется, так как показываем все транзакции
    */
   private getPeriodStart(now: Date, period: PeriodType): Date {
     const d = new Date(now);
@@ -135,11 +194,6 @@ export class HomePage {
       }
       case 'month': {
         d.setDate(1);
-        d.setHours(0, 0, 0, 0);
-        return d;
-      }
-      case 'year': {
-        d.setMonth(0, 1);
         d.setHours(0, 0, 0, 0);
         return d;
       }

@@ -12,6 +12,8 @@ interface ItemRow {
   category: 'income' | 'expense';
   total: number;
   last_updated: string; // snake_case для Supabase
+  is_favorite?: boolean;
+  sort_order?: number;
 }
 
 /**
@@ -33,7 +35,9 @@ export class ItemSupabaseRepository {
       title: row.title,
       category: row.category,
       total: row.total,
-      lastUpdated: row.last_updated // Преобразование last_updated -> lastUpdated
+      lastUpdated: row.last_updated, // Преобразование last_updated -> lastUpdated
+      isFavorite: row.is_favorite ?? false, // Используем значение по умолчанию, если колонка не существует
+      sortOrder: row.sort_order // Может быть undefined, если колонка не существует
     };
   }
 
@@ -43,13 +47,17 @@ export class ItemSupabaseRepository {
    * @returns объект в формате Supabase
    */
   private toRow(item: Item): ItemRow {
-    return {
+    const row: ItemRow = {
       id: item.id,
       title: item.title,
       category: item.category,
       total: item.total,
-      last_updated: item.lastUpdated // Преобразование lastUpdated -> last_updated
+      last_updated: item.lastUpdated, // Преобразование lastUpdated -> last_updated
+      is_favorite: item.isFavorite ?? false,
+      sort_order: item.sortOrder
     };
+    
+    return row;
   }
 
   /**
@@ -59,7 +67,7 @@ export class ItemSupabaseRepository {
   async getAll(): Promise<Item[]> {
     const { data, error } = await this.supabase.client
       .from('items')
-      .select('id, title, category, total, last_updated');
+      .select('id, title, category, total, last_updated, is_favorite, sort_order');
 
     if (error) throw error;
     

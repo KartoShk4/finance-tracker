@@ -10,7 +10,7 @@
 
 .home-period-controls {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
   flex-wrap: wrap;
@@ -104,6 +104,36 @@
   }
 }
 
+/* Фильтр по типу категории */
+.home-filter {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.filter-button {
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  
+  &:hover {
+    border-color: var(--color-border-hover);
+    background-color: var(--color-bg-tertiary);
+  }
+  
+  &.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+}
+
 /* Список items */
 .items-list {
   display: flex;
@@ -121,7 +151,11 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-md);
-  cursor: pointer;
+  
+  &.favorite {
+    border-left: 3px solid #fbbf24;
+    background-color: var(--color-bg-secondary);
+  }
   
   &:hover {
     border-color: var(--color-border-hover);
@@ -132,7 +166,79 @@
   
   .items-item-content {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
     cursor: pointer;
+  }
+  
+  .items-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+  
+  // Стили для drag-and-drop
+  &.cdk-drag {
+    cursor: move;
+  }
+  
+  &.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+  
+  &.cdk-drag-preview {
+    box-shadow: var(--shadow-lg);
+    opacity: 0.9;
+    transform: rotate(2deg);
+  }
+}
+
+// Стили для контейнера drag-and-drop
+.items-list.cdk-drop-list-dragging .items-item:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// Плейсхолдер при перетаскивании
+.cdk-drag-placeholder {
+  opacity: 0.3;
+  background-color: var(--color-bg-tertiary);
+  border: 2px dashed var(--color-border);
+}
+
+.favorite-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+  
+  &:hover {
+    border-color: #fbbf24;
+    color: #fbbf24;
+    transform: scale(1.1);
+  }
+  
+  &.active {
+    background-color: #fbbf24;
+    border-color: #fbbf24;
+    color: white;
+  }
+  
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -142,13 +248,6 @@
   gap: var(--space-md);
 }
 
-.items-item-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-}
 
 .items-item-title {
   font-weight: 500;

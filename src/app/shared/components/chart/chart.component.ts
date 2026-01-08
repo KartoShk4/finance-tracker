@@ -47,10 +47,10 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /** Доступные периоды для переключения */
   readonly periods: { value: PeriodType; label: string }[] = [
-    { value: 'day', label: 'Дни' },
-    { value: 'week', label: 'Недели' },
-    { value: 'month', label: 'Месяцы' },
-    { value: 'year', label: 'Годы' }
+    { value: 'day', label: 'День' },
+    { value: 'week', label: 'Неделя' },
+    { value: 'month', label: 'Месяц' },
+    { value: 'year', label: 'Год' }
   ];
 
   /**
@@ -60,10 +60,8 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
     // Используем двойной requestAnimationFrame для гарантии, что canvas полностью отрендерен
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (this.canvas?.nativeElement) {
-          if (this.hasData) {
-            this.initChart();
-          }
+        if (this.canvas?.nativeElement && this.hasData) {
+          this.initChart();
         }
       });
     });

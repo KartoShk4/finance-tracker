@@ -14,7 +14,7 @@
   </div>
 
   <!-- График или пустое состояние -->
-  <div class="chart-wrapper" [style.display]="hasData ? 'block' : 'none'">
+  <div class="chart-wrapper" [class.hidden]="!hasData">
     <canvas #canvas></canvas>
   </div>
   <div *ngIf="!hasData" class="chart-empty">
