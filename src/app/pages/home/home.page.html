@@ -1,15 +1,55 @@
-<form (submit)="add(); $event.preventDefault()">
-  <input [(ngModel)]="title" name="title" placeholder="Название" />
-  <select [(ngModel)]="category" name="category">
-    <option value="income">Доход</option>
-    <option value="expense">Расход</option>
-  </select>
-  <button>Добавить</button>
-</form>
+<div class="home-page">
+  <!-- Форма добавления нового item -->
+  <div class="home-form">
+    <form (submit)="add(); $event.preventDefault()">
+      <div class="form-row">
+        <input 
+          type="text" 
+          [(ngModel)]="title" 
+          name="title" 
+          placeholder="Название категории"
+          required />
+        <select [(ngModel)]="category" name="category">
+          <option value="income">Доход</option>
+          <option value="expense">Расход</option>
+        </select>
+        <button type="submit">Добавить</button>
+      </div>
+    </form>
+  </div>
 
-<ul>
-  <li *ngFor="let item of items()"
-      (click)="open(item.id)">
-    {{ item.title }} — {{ item.total }} — {{ item.lastUpdated | date:'short' }}
-  </li>
-</ul>
+  <!-- Список items -->
+  <div class="items-list">
+    <div 
+      *ngFor="let item of items()"
+      class="items-item">
+      <div class="items-item-content" (click)="open(item.id)">
+        <div class="items-item-title">{{ item.title }}</div>
+        <div class="items-item-meta">
+          <span class="items-item-date">
+            Обновлено: {{ item.lastUpdated | date:'short' }}
+          </span>
+        </div>
+      </div>
+      <div class="items-item-actions">
+        <div 
+          class="items-item-amount"
+          [class.income]="item.category === 'income'"
+          [class.expense]="item.category === 'expense'">
+          {{ item.total | number:'1.2-2' }} ₽
+        </div>
+        <button 
+          class="delete-button"
+          (click)="delete(item.id, $event)"
+          title="Удалить категорию">
+          ×
+        </button>
+      </div>
+    </div>
+    
+    <!-- Пустое состояние -->
+    <div *ngIf="items().length === 0" class="items-empty">
+      <p>Нет категорий. Создайте первую категорию для отслеживания финансов.</p>
+    </div>
+  </div>
+</div>

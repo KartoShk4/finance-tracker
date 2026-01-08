@@ -1,19 +1,73 @@
-<form (submit)="addTransaction(); $event.preventDefault()">
-  <input type="number" [(ngModel)]="amount" name="amount" />
-  <select [(ngModel)]="type" name="type">
-    <option value="income">Доход</option>
-    <option value="expense">Расход</option>
-  </select>
-  <button>Добавить</button>
-</form>
+<div class="item-details-page">
+  <!-- Кнопка назад -->
+  <a routerLink="/" class="back-button">← Назад к списку</a>
 
-<ul>
-  <li *ngFor="let t of transactions()">
-    {{ t.type }} — {{ t.amount }} — {{ t.date | date:'short' }}
-  </li>
-</ul>
+  <!-- Форма добавления транзакции -->
+  <div class="transaction-form">
+    <div class="form-info" *ngIf="currentItem()">
+      <span class="category-badge" [class.income]="currentItem()!.category === 'income'" [class.expense]="currentItem()!.category === 'expense'">
+        {{ currentItem()!.category === 'income' ? 'Доход' : 'Расход' }}
+      </span>
+      <span class="category-title">{{ currentItem()!.title }}</span>
+    </div>
+    <form (submit)="addTransaction(); $event.preventDefault()">
+      <div class="form-row">
+        <input 
+          type="number" 
+          [(ngModel)]="amount" 
+          name="amount" 
+          placeholder="Сумма"
+          min="0.01"
+          step="0.01"
+          required />
+        <button type="submit">Добавить транзакцию</button>
+      </div>
+    </form>
+  </div>
 
-<app-chart
-  [labels]="chartData().labels"
-  [data]="chartData().data">
-</app-chart>
+  <!-- График -->
+  <app-chart
+    [labels]="chartData().labels"
+    [data]="chartData().data"
+    [period]="selectedPeriod()"
+    (periodChange)="selectedPeriod.set($event)">
+  </app-chart>
+
+  <!-- Список транзакций -->
+  <div class="transactions-list">
+    <div 
+      *ngFor="let t of transactions()"
+      class="transaction-item">
+      <div class="transaction-item-content">
+        <span 
+          class="transaction-type"
+          [class.income]="t.type === 'income'"
+          [class.expense]="t.type === 'expense'">
+          {{ t.type === 'income' ? 'Доход' : 'Расход' }}
+        </span>
+        <span class="transaction-date">
+          {{ t.date | date:'short' }}
+        </span>
+      </div>
+      <div class="transaction-item-actions">
+        <div 
+          class="transaction-amount"
+          [class.income]="t.type === 'income'"
+          [class.expense]="t.type === 'expense'">
+          {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | number:'1.2-2' }} ₽
+        </div>
+        <button 
+          class="delete-button"
+          (click)="deleteTransaction(t.id)"
+          title="Удалить транзакцию">
+          ×
+        </button>
+      </div>
+    </div>
+    
+    <!-- Пустое состояние -->
+    <div *ngIf="transactions().length === 0" class="transactions-empty">
+      <p>Нет транзакций. Добавьте первую транзакцию для отслеживания финансов.</p>
+    </div>
+  </div>
+</div>

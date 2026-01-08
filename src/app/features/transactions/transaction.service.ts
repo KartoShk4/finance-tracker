@@ -12,7 +12,7 @@ export class TransactionService {
   getByItem(itemId: string): Transaction[] {
     return this.storage
       .get<Transaction>(this.KEY)
-      .filter(t => t.itemId === itemId);
+      .filter(t => t.item_id === itemId);
   }
 
   /**
@@ -29,7 +29,7 @@ export class TransactionService {
 
     transactions.push({
       id: crypto.randomUUID(),
-      itemId,
+      item_id: itemId,
       type,
       amount,
       date: new Date().toISOString()

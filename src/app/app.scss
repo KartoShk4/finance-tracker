@@ -1,15 +1,80 @@
+/* ============================================
+   Стили основного компонента приложения
+   ============================================ */
+
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--color-bg-primary);
 }
 
+/* Шапка приложения */
 .app-header {
   border-bottom: 1px solid var(--color-border);
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
+  background-color: var(--color-bg-card);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
 }
 
+.app-nav {
+  display: flex;
+  gap: var(--space-md);
+  
+  a {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    
+    &:hover {
+      background-color: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+    }
+    
+    &.active {
+      background-color: var(--color-primary);
+      color: white;
+    }
+  }
+}
+
+/* Основной контент */
 .app-content {
   flex: 1;
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .app-header {
+    padding: var(--space-md);
+    
+    h1 {
+      font-size: 1.25rem;
+    }
+  }
+  
+  .app-content {
+    padding: var(--space-md);
+  }
 }
