@@ -13,35 +13,35 @@
       <a routerLink="/history" routerLinkActive="active">История</a>
       <a routerLink="/faq" routerLinkActive="active">FAQ</a>
       <a routerLink="/about" routerLinkActive="active">О нас</a>
-    </nav>
-    <div class="app-auth">
-      <div *ngIf="authService.loading()" class="auth-loading">
-        Загрузка...
-      </div>
-      <div *ngIf="!authService.loading()">
-        <div *ngIf="!authService.isAuthenticated()" class="auth-actions">
-          <app-vk-login></app-vk-login>
+      <div class="app-auth">
+        <div *ngIf="authService.loading()" class="auth-loading">
+          Загрузка...
         </div>
-        <div *ngIf="authService.isAuthenticated()" class="auth-user">
-          <div class="auth-user-info">
-            <img 
-              *ngIf="authService.user()?.photo" 
-              [src]="authService.user()?.photo" 
-              [alt]="authService.user()?.firstName"
-              class="auth-user-photo" />
-            <span class="auth-user-name">
+        <div *ngIf="!authService.loading()">
+          <div *ngIf="!authService.isAuthenticated()" class="auth-actions">
+            <app-vk-login></app-vk-login>
+          </div>
+          <div *ngIf="authService.isAuthenticated()" class="auth-user">
+            <div class="auth-user-info">
+              <img
+                *ngIf="authService.user()?.photo"
+                [src]="authService.user()?.photo"
+                [alt]="authService.user()?.firstName"
+                class="auth-user-photo" />
+              <span class="auth-user-name">
               {{ authService.user()?.firstName }} {{ authService.user()?.lastName }}
             </span>
+            </div>
+            <button
+              class="auth-button auth-button-out"
+              (click)="signOut()"
+              title="Выйти">
+              Выйти
+            </button>
           </div>
-          <button
-            class="auth-button auth-button-out"
-            (click)="signOut()"
-            title="Выйти">
-            Выйти
-          </button>
         </div>
       </div>
-    </div>
+    </nav>
   </header>
 
   <main class="app-content">

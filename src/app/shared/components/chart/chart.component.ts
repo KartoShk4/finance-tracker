@@ -28,13 +28,13 @@ import { PeriodType } from '../../utils/chart.utils';
 export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   /** Метки для оси X (даты/периоды) */
   @Input() labels: string[] = [];
-  
+
   /** Данные для отображения (значения) */
   @Input() data: number[] = [];
-  
+
   /** Выбранный период агрегации */
   @Input() period: PeriodType = 'day';
-  
+
   /** Событие изменения периода */
   @Output() periodChange = new EventEmitter<PeriodType>();
 
@@ -135,7 +135,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
             borderWidth: 2,
-            spanGaps: false
+            spanGaps: false,
           }
         ]
       },
@@ -276,15 +276,15 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   private calculateCumulativeData(data: number[]): number[] {
     if (data.length === 0) return [];
-    
+
     const cumulative: number[] = [];
     let sum = 0;
-    
+
     for (const value of data) {
       sum += value;
       cumulative.push(sum);
     }
-    
+
     return cumulative;
   }
 
@@ -307,11 +307,11 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
     try {
       // Вычисляем кумулятивные данные
       const cumulativeData = this.calculateCumulativeData(this.data);
-      
+
       // Обновляем данные
       this.chart.data.labels = this.labels.length > 0 ? this.labels : [];
       this.chart.data.datasets[0].data = cumulativeData.length > 0 ? cumulativeData : [];
-      
+
       // Обновляем размер точек в зависимости от количества данных
       const dataset = this.chart.data.datasets[0] as any;
       if (this.data.length > 20) {
@@ -319,7 +319,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
       } else {
         dataset.pointRadius = 4;
       }
-      
+
       // Обновляем график с анимацией
       this.chart.update('active');
     } catch (error) {

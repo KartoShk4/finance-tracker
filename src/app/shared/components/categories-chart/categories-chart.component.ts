@@ -61,7 +61,7 @@ export interface CategoryChartData {
       display: flex;
       align-items: center;
       justify-content: center;
-      
+
       &.hidden {
         display: none;
       }
@@ -224,7 +224,7 @@ export class CategoriesChartComponent implements AfterViewInit, OnChanges, OnDes
                 size: 12,
                 family: "'Inter', sans-serif"
               },
-              color: 'var(--color-text-primary)',
+              color: '#FFFFFF',
               usePointStyle: true,
               pointStyle: 'circle'
             }

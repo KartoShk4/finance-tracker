@@ -53,7 +53,7 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
       display: flex;
       align-items: center;
       justify-content: center;
-      
+
       &.hidden {
         display: none;
       }
@@ -256,7 +256,7 @@ export class PieChartComponent implements AfterViewInit, OnChanges, OnDestroy {
                 size: 12,
                 family: "'Inter', sans-serif"
               },
-              color: 'var(--color-text-primary)',
+              color: '#FFFFFF',
               usePointStyle: true,
               pointStyle: 'circle'
             }
@@ -316,16 +316,16 @@ export class PieChartComponent implements AfterViewInit, OnChanges, OnDestroy {
       // Обновляем данные графика
       const incomeValue = this.income || 0;
       const expenseValue = Math.abs(this.expense || 0);
-      
+
       this.chart.data.datasets[0].data = [incomeValue, expenseValue];
-      
+
       // Если данных нет, уничтожаем график
       if (!this.hasData) {
         this.chart.destroy();
         this.chart = null as any;
         return;
       }
-      
+
       this.chart.update('active');
     } catch (error) {
       console.error('Error updating pie chart:', error);

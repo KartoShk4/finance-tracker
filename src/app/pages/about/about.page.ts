@@ -41,8 +41,7 @@ import { RouterLink } from '@angular/router';
             </div>
           </div>
           <p class="section-text">
-            Finance Tracker распространяется под проприетарной лицензией. Все права на программное
-            обеспечение, его исходный код и связанные материалы принадлежат разработчику.
+            Finance Tracker распространяется под проприетарной лицензией. Все права на его исходный код и связанные материалы принадлежат разработчику.
             Приложение предоставляется для личного некоммерческого использования. Запрещается
             копирование, модификация, распространение или коммерческое использование без
             письменного разрешения правообладателя.
@@ -89,26 +88,6 @@ import { RouterLink } from '@angular/router';
           </p>
 
           <div class="donation-methods">
-<!--            <div class="donation-card">-->
-<!--              <div class="donation-icon">🎯</div>-->
-<!--              <h3 class="donation-title">Boosty</h3>-->
-<!--              <div class="donation-details">-->
-<!--                <p class="donation-note">-->
-<!--                  Подпишитесь на Boosty и получите доступ к эксклюзивному контенту-->
-<!--                </p>-->
-<!--                <a -->
-<!--                  href="https://boosty.to/yourname" -->
-<!--                  target="_blank" -->
-<!--                  rel="noopener noreferrer"-->
-<!--                  class="donation-link-button">-->
-<!--                  <span>Поддержать на Boosty</span>-->
-<!--                  <svg class="external-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-<!--                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
-<!--                  </svg>-->
-<!--                </a>-->
-<!--              </div>-->
-<!--            </div>-->
-
             <div class="donation-card">
               <div class="donation-icon">💳</div>
               <h3 class="donation-title">ЮMoney</h3>
@@ -117,7 +96,7 @@ import { RouterLink } from '@angular/router';
                   Быстрая и безопасная поддержка через ЮMoney (Яндекс.Деньги)
                 </p>
                 <a
-                  href="https://yoomoney.ru/to/yourlink"
+                  href="https://yoomoney.ru/fundraise/1F73Q5FAJ0R.260110"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="donation-link-button">
@@ -131,17 +110,17 @@ import { RouterLink } from '@angular/router';
 
             <div class="donation-card">
               <div class="donation-icon">📱</div>
-              <h3 class="donation-title">Qiwi</h3>
+              <h3 class="donation-title">Donate-stream</h3>
               <div class="donation-details">
                 <p class="donation-note">
-                  Удобная поддержка через Qiwi кошелек
+                  Быстрая, и удобная поддержка через Donate-stream
                 </p>
                 <a
-                  href="https://qiwi.com/n/yourname"
+                  href="https://donate.stream/yoomoney4100118748728821"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="donation-link-button">
-                  <span>Поддержать через Qiwi</span>
+                  <span>Поддержать через Donate-stream</span>
                   <svg class="external-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -167,6 +146,22 @@ import { RouterLink } from '@angular/router';
               class="contact-link">
               <span class="contact-emoji">💬</span>
               VK
+            </a>
+            <a
+              href="mailto:trisemerka@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="contact-link">
+              <span class="contact-emoji">💬</span>
+              Email
+            </a>
+            <a
+              href="https://t.me/emuhamadeev"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="contact-link">
+              <span class="contact-emoji">💬</span>
+              Telegram
             </a>
           </div>
           <p class="section-text" style="margin-top: var(--space-md);">
