@@ -39,6 +39,9 @@ export class ItemDetailsPage {
   /** Сумма для новой транзакции */
   amount = 0;
 
+  /** Тип транзакции (выбирается пользователем) */
+  transactionType: 'income' | 'expense' = 'income';
+
   /** Дата и время транзакции */
   transactionDate: string = new Date().toISOString();
 
@@ -56,6 +59,7 @@ export class ItemDetailsPage {
 
   /** Поля для редактирования транзакции */
   editAmount = 0;
+  editTransactionType: 'income' | 'expense' = 'income';
   editDate: string = '';
   editNotes = '';
   editSubcategoryId: string | null = null;
@@ -65,6 +69,13 @@ export class ItemDetailsPage {
 
   /** Подкатегории для текущей категории */
   subcategories = this.subcategoryStore.byItemId(this.itemId);
+
+  /** Фильтр по типу транзакции */
+  transactionFilter = signal<'all' | 'income' | 'expense'>('all');
+
+  /** Флаг процесса сохранения транзакции */
+  private _isSaving = signal<boolean>(false);
+  isSaving = computed(() => this._isSaving());
 
   /** Состояние модальных окон */
   showDeleteCategoryModal = false;
@@ -84,12 +95,19 @@ export class ItemDetailsPage {
     return this.itemStore.items().find(item => item.id === this.itemId);
   });
 
-  /** Тип транзакции берется из категории */
-  get transactionType(): 'income' | 'expense' {
-    return this.currentItem()?.category || 'income';
-  }
+  /** Отфильтрованные транзакции */
+  filteredTransactions = computed(() => {
+    let filtered = this.transactions();
+    
+    // Фильтрация по типу транзакции
+    if (this.transactionFilter() !== 'all') {
+      filtered = filtered.filter(tx => tx.type === this.transactionFilter());
+    }
+    
+    return filtered;
+  });
 
-  /** Транзакции для текущего item */
+  /** Все транзакции для текущего item */
   transactions = this.txStore.byItem(this.itemId);
 
   /** Данные для графика, агрегированные по выбранному периоду */
@@ -102,63 +120,112 @@ export class ItemDetailsPage {
   });
 
   /**
-   * Добавление новой транзакции
-   * Тип транзакции автоматически берется из категории
+   * Проверка возможности создания транзакции в демо-режиме
    */
-  async addTransaction(): Promise<void> {
-    // В демо-режиме запрещаем добавление транзакций
-    if (this.isDemoMode()) {
-      alert('Войдите в систему, чтобы добавлять транзакции');
+  canCreateTransactionInDemo(): boolean {
+    if (!this.isDemoMode()) return true;
+    // Считаем только пользовательские транзакции (не демо)
+    const userTransactions = this.transactions().filter(tx => !tx.id.startsWith('demo-tx-'));
+    return userTransactions.length < 2;
+  }
+
+  /**
+   * Добавление новой транзакции
+   * Тип транзакции выбирается пользователем
+   * @param event - событие submit формы
+   */
+  async addTransaction(event?: Event): Promise<void> {
+    // Предотвращаем стандартное поведение формы
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    // Защита от повторных отправок
+    if (this._isSaving()) {
       return;
     }
 
-    if (this.amount <= 0) return;
-    
-    const item = this.currentItem();
-    if (!item) return;
-    
-    try {
+    // Валидация: проверяем сумму
+    if (!this.amount || this.amount <= 0) {
+      alert('Введите сумму транзакции');
+      return;
+    }
 
-    // Тип транзакции соответствует типу категории
-    const type = item.category;
-
-    let subcategoryId: string | undefined = undefined;
-
-    // Если выбрано создание новой подкатегории
-    if (this.selectedSubcategoryId === '__create_new__') {
-      if (!this.newSubcategoryName.trim()) {
-        alert('Введите название подкатегории');
+    // В демо-режиме проверяем лимит
+    if (this.isDemoMode()) {
+      if (!this.canCreateTransactionInDemo()) {
+        alert('В демо-режиме можно создать только 2 транзакции. Войдите в систему для создания неограниченного количества транзакций.');
         return;
       }
-      // Создаем подкатегорию
-      const subcategory = await this.subcategoryStore.create(this.itemId, this.newSubcategoryName.trim());
-      subcategoryId = subcategory.id;
-    } else if (this.selectedSubcategoryId) {
-      subcategoryId = this.selectedSubcategoryId;
     }
 
-    // Добавляем транзакцию с выбранной датой, примечанием и подкатегорией, получаем дельту (изменение суммы)
-    const delta = await this.txStore.add(
-      this.itemId, 
-      type, 
-      this.amount, 
-      this.transactionDate, 
-      this.notes,
-      subcategoryId
-    );
-    
-    // Обновляем общую сумму item
-    await this.itemStore.applyDelta(this.itemId, delta);
-    
-      // Сбрасываем форму
-      this.amount = 0;
-      this.transactionDate = new Date().toISOString();
-      this.notes = '';
-      this.selectedSubcategoryId = null;
-      this.newSubcategoryName = '';
-    } catch (error: any) {
-      alert(error.message || 'Ошибка при добавлении транзакции');
+    const item = this.currentItem();
+    if (!item) {
+      alert('Категория не найдена');
+      return;
     }
+
+    // Устанавливаем флаг сохранения
+    this._isSaving.set(true);
+    
+    try {
+      // Тип транзакции выбирается пользователем
+      const type = this.transactionType;
+
+      let subcategoryId: string | undefined = undefined;
+
+      // Если выбрано создание новой подкатегории
+      if (this.selectedSubcategoryId === '__create_new__') {
+        if (!this.newSubcategoryName.trim()) {
+          alert('Введите название подкатегории');
+          this._isSaving.set(false);
+          return;
+        }
+        // Создаем подкатегорию
+        const subcategory = await this.subcategoryStore.create(this.itemId, this.newSubcategoryName.trim());
+        subcategoryId = subcategory.id;
+      } else if (this.selectedSubcategoryId) {
+        subcategoryId = this.selectedSubcategoryId;
+      }
+
+      // Добавляем транзакцию с выбранной датой, примечанием и подкатегорией, получаем дельту (изменение суммы)
+      const delta = await this.txStore.add(
+        this.itemId, 
+        type, 
+        this.amount, 
+        this.transactionDate, 
+        this.notes,
+        subcategoryId
+      );
+      
+      // Обновляем общую сумму item
+      await this.itemStore.applyDelta(this.itemId, delta);
+      
+      // Сбрасываем форму только после успешного создания
+      this.resetForm();
+    } catch (error: any) {
+      if (error.message === 'DEMO_TRANSACTION_LIMIT_REACHED') {
+        alert('В демо-режиме можно создать только 2 транзакции. Войдите в систему для создания неограниченного количества транзакций.');
+      } else {
+        alert(error.message || 'Ошибка при добавлении транзакции');
+      }
+    } finally {
+      // Снимаем флаг сохранения в любом случае
+      this._isSaving.set(false);
+    }
+  }
+
+  /**
+   * Сброс формы добавления транзакции
+   */
+  private resetForm(): void {
+    this.amount = 0;
+    this.transactionType = 'income';
+    this.transactionDate = new Date().toISOString();
+    this.notes = '';
+    this.selectedSubcategoryId = null;
+    this.newSubcategoryName = '';
   }
 
   /**
@@ -195,8 +262,9 @@ export class ItemDetailsPage {
    * Начало редактирования транзакции
    * @param transaction - транзакция для редактирования
    */
-  startEdit(transaction: { id: string; amount: number; date: string; notes?: string; subcategory_id?: string }): void {
+  startEdit(transaction: { id: string; type: 'income' | 'expense'; amount: number; date: string; notes?: string; subcategory_id?: string }): void {
     this.editingTransactionId = transaction.id;
+    this.editTransactionType = transaction.type;
     this.editAmount = transaction.amount;
     this.editDate = transaction.date;
     this.editNotes = transaction.notes || '';
@@ -209,6 +277,7 @@ export class ItemDetailsPage {
   cancelEdit(): void {
     this.editingTransactionId = null;
     this.editAmount = 0;
+    this.editTransactionType = 'income';
     this.editDate = '';
     this.editNotes = '';
     this.editSubcategoryId = null;
@@ -242,16 +311,37 @@ export class ItemDetailsPage {
       }
     }
 
-    // Обновляем транзакцию и получаем дельту для обновления общей суммы
-    const delta = await this.txStore.update(id, {
-      amount: this.editAmount,
-      date: validDate,
-      notes: this.editNotes,
-      subcategory_id: this.editSubcategoryId || undefined
-    });
+    // Получаем текущую транзакцию для определения старого типа
+    const currentTx = this.transactions().find(tx => tx.id === id);
+    if (!currentTx) return;
 
-    // Обновляем общую сумму item
-    await this.itemStore.applyDelta(this.itemId, delta);
+    // Если тип изменился, нужно пересчитать дельту
+    // Для этого удаляем старую транзакцию и создаем новую с новым типом
+    if (currentTx.type !== this.editTransactionType) {
+      // Удаляем старую транзакцию
+      const deleteDelta = await this.txStore.delete(id);
+      await this.itemStore.applyDelta(this.itemId, deleteDelta);
+      
+      // Создаем новую транзакцию с новым типом
+      const addDelta = await this.txStore.add(
+        this.itemId,
+        this.editTransactionType,
+        this.editAmount,
+        validDate,
+        this.editNotes,
+        this.editSubcategoryId || undefined
+      );
+      await this.itemStore.applyDelta(this.itemId, addDelta);
+    } else {
+      // Тип не изменился, обновляем транзакцию как обычно
+      const delta = await this.txStore.update(id, {
+        amount: this.editAmount,
+        date: validDate,
+        notes: this.editNotes,
+        subcategory_id: this.editSubcategoryId || undefined
+      });
+      await this.itemStore.applyDelta(this.itemId, delta);
+    }
 
     // Сбрасываем состояние редактирования
     this.cancelEdit();

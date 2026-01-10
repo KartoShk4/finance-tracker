@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { VkLoginComponent } from './shared/components/vk-login/vk-login.components';
 import { FloatingOneTapComponent } from './shared/components/floating-one-tap/floating-one-tap.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
+import { SnackbarComponent } from './shared/components/snackbar/snackbar.component';
 import { VkAuthService } from './core/auth/auth.service';
 
 /**
@@ -20,7 +21,8 @@ import { VkAuthService } from './core/auth/auth.service';
     CommonModule, 
     VkLoginComponent,
     FloatingOneTapComponent,
-    FooterComponent
+    FooterComponent,
+    SnackbarComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

@@ -19,32 +19,42 @@ export function aggregateByPeriod(
 
   for (const t of transactions) {
     const date = new Date(t.date);
+    // Проверяем валидность даты
+    if (isNaN(date.getTime())) continue;
+    
     let key: string;
 
     switch (period) {
       case 'day':
-        // Группировка по дням: YYYY-MM-DD
-        key = date.toISOString().slice(0, 10);
+        // Группировка по дням: YYYY-MM-DD (используем локальное время)
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        key = `${year}-${month}-${day}`;
         break;
       
       case 'week':
-        // Группировка по неделям: YYYY-WW (год-неделя)
+        // Группировка по неделям: YYYY-WW (год-неделя, используем локальное время)
         const week = getWeekNumber(date);
         key = `${date.getFullYear()}-W${week.toString().padStart(2, '0')}`;
         break;
       
       case 'month':
-        // Группировка по месяцам: YYYY-MM
+        // Группировка по месяцам: YYYY-MM (используем локальное время)
         key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
         break;
       
       case 'year':
-        // Группировка по годам: YYYY
+        // Группировка по годам: YYYY (используем локальное время)
         key = date.getFullYear().toString();
         break;
       
       default:
-        key = date.toISOString().slice(0, 10);
+        // По умолчанию группируем по дням (локальное время)
+        const defYear = date.getFullYear();
+        const defMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+        const defDay = date.getDate().toString().padStart(2, '0');
+        key = `${defYear}-${defMonth}-${defDay}`;
     }
 
     // Доход +, расход -
@@ -99,16 +109,23 @@ function formatPeriodLabel(key: string, period: PeriodType): string {
 }
 
 /**
- * Вычисляет номер недели в году
+ * Вычисляет номер недели в году (использует локальное время)
  * @param date - дата
  * @returns номер недели (1-53)
  */
 function getWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  // Создаем копию даты, чтобы не изменять оригинал
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  // Получаем день недели (0 = воскресенье, 1 = понедельник, ...)
+  // Преобразуем к формату ISO (1 = понедельник, 7 = воскресенье)
+  const dayNum = d.getDay() || 7;
+  // Смещаем дату на четверг той же недели (ISO неделя начинается с понедельника)
+  d.setDate(d.getDate() + 4 - dayNum);
+  // Начало года для расчета недели
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  // Вычисляем количество дней от начала года и делим на 7
+  const days = Math.floor((d.getTime() - yearStart.getTime()) / 86400000);
+  return Math.ceil((days + 1) / 7);
 }
 
 /**

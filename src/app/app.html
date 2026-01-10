@@ -11,6 +11,8 @@
     <nav class="app-nav">
       <a routerLink="/" routerLinkActive="active">Главная</a>
       <a routerLink="/history" routerLinkActive="active">История</a>
+      <a routerLink="/faq" routerLinkActive="active">FAQ</a>
+      <a routerLink="/about" routerLinkActive="active">О нас</a>
     </nav>
     <div class="app-auth">
       <div *ngIf="authService.loading()" class="auth-loading">
@@ -51,4 +53,7 @@
 
   <!-- FloatingOneTap для неавторизованных пользователей -->
   <app-floating-one-tap *ngIf="!authService.isAuthenticated() && !authService.loading()"></app-floating-one-tap>
+
+  <!-- Snackbar для уведомлений -->
+  <app-snackbar></app-snackbar>
 </div>

@@ -26,6 +26,8 @@ import { RouterLink } from '@angular/router';
           <nav class="footer-nav">
             <a routerLink="/" routerLinkActive="active" (click)="scrollToTop()">Главная</a>
             <a routerLink="/history" routerLinkActive="active" (click)="scrollToTop()">История</a>
+            <a routerLink="/faq" routerLinkActive="active" (click)="scrollToTop()">FAQ</a>
+            <a routerLink="/about" routerLinkActive="active" (click)="scrollToTop()">О нас</a>
           </nav>
         </div>
         
@@ -164,6 +166,16 @@ import { RouterLink } from '@angular/router';
       margin: 0;
     }
 
+    .footer-link {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+
+    .footer-link:hover {
+      text-decoration: underline;
+    }
+
     /* Адаптивность */
     @media (max-width: 768px) {
       .app-footer {
@@ -202,4 +214,5 @@ export class FooterComponent {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
 

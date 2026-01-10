@@ -261,6 +261,14 @@ export class VkLoginComponent implements AfterViewInit {
           if (VKID.Auth && typeof VKID.Auth.exchangeCode === 'function') {
             VKID.Auth.exchangeCode(code, deviceId)
               .then((tokenData: any) => {
+                // Проверяем ошибки расширений браузера
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
+                  const lastError = chrome.runtime.lastError.message;
+                  if (lastError && !lastError.includes('message port closed')) {
+                    console.warn('Chrome runtime error (ignored):', lastError);
+                  }
+                }
+                
                 console.log('VKID auth success:', tokenData);
                 // Передаем данные в сервис для обработки
                 this.auth.handleLoginSuccess({
@@ -270,6 +278,21 @@ export class VkLoginComponent implements AfterViewInit {
                 });
               })
               .catch((error: any) => {
+                // Игнорируем ошибки расширений браузера
+                const errorMessage = error?.message || error?.toString() || '';
+                if (
+                  errorMessage.includes('runtime.lastError') ||
+                  errorMessage.includes('message port closed') ||
+                  errorMessage.includes('Extension context invalidated') ||
+                  errorMessage.includes('The message port closed before a response was received')
+                ) {
+                  // Это ошибка расширения, не критическая - продолжаем работу
+                  console.warn('Игнорируем ошибку расширения браузера:', errorMessage);
+                  // Пробуем передать payload напрямую, возможно токен уже есть
+                  this.auth.handleLoginSuccess(payload);
+                  return;
+                }
+                
                 console.error('VKID exchange code error:', error);
                 alert('Ошибка при обмене кода на токен: ' + (error.message || error));
               });

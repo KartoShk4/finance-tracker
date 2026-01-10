@@ -127,6 +127,14 @@ export class VkAuthService {
       // Используем VKID SDK для обмена кода на токен
       const tokenData = await VKID.Auth.exchangeCode(code, deviceId);
       
+      // Проверяем ошибки расширений браузера (chrome.runtime.lastError)
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
+        const lastError = chrome.runtime.lastError.message;
+        if (lastError && !lastError.includes('message port closed')) {
+          console.warn('Chrome runtime error (ignored):', lastError);
+        }
+      }
+      
       if (!tokenData?.access_token || !tokenData?.user_id) {
         throw new Error('Не удалось получить токен доступа');
       }
@@ -135,6 +143,17 @@ export class VkAuthService {
       return tokenData;
 
     } catch (error: any) {
+      // Игнорируем ошибки расширений браузера
+      const errorMessage = error?.message || error?.toString() || '';
+      if (
+        errorMessage.includes('runtime.lastError') ||
+        errorMessage.includes('message port closed') ||
+        errorMessage.includes('Extension context invalidated')
+      ) {
+        // Это ошибка расширения, не критическая
+        return null;
+      }
+      
       console.error('Ошибка обмена кода на токен:', error);
       throw new Error('Не удалось обменять код на токен доступа');
     }

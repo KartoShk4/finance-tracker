@@ -213,10 +213,9 @@ export class ItemStore {
   /**
    * Создание новой категории
    * @param title - название категории
-   * @param category - тип категории (доход/расход)
    * @throws Error если в демо-режиме достигнут лимит созданных категорий
    */
-  async create(title: string, category: 'income' | 'expense'): Promise<void> {
+  async create(title: string): Promise<void> {
     // В демо-режиме проверяем лимит на создание категорий
     if (this.isDemoMode()) {
       if (!this.canCreateInDemoMode()) {
@@ -227,7 +226,7 @@ export class ItemStore {
     const item: Item = {
       id: crypto.randomUUID(),
       title,
-      category,
+      // category не устанавливается при создании - тип определяется транзакциями
       total: 0,
       lastUpdated: new Date().toISOString()
     };
@@ -245,7 +244,7 @@ export class ItemStore {
         entityType: 'item',
         entityId: item.id,
         entityTitle: title,
-        details: `Категория "${category === 'income' ? 'Доход' : 'Расход'}" создана`
+        details: `Категория создана`
       });
     }
   }

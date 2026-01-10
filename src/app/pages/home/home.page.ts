@@ -7,6 +7,7 @@ import { ItemStore } from '../../features/items/item.store';
 import { TransactionStore } from '../../features/transactions/transaction.store';
 import { VkAuthService } from '../../core/auth/auth.service';
 import { PieChartComponent } from '../../shared/components/pie-chart/pie-chart.component';
+import { CategoriesChartComponent, CategoryChartData } from '../../shared/components/categories-chart/categories-chart.component';
 import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 import { PeriodType } from '../../shared/utils/chart.utils';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
@@ -17,7 +18,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, PieChartComponent, LocalDatePipe, ModalComponent],
+  imports: [CommonModule, FormsModule, DragDropModule, PieChartComponent, CategoriesChartComponent, LocalDatePipe, ModalComponent],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
@@ -27,26 +28,23 @@ export class HomePage {
   private router = inject(Router);
   private authService = inject(VkAuthService);
 
+  dragActivated = false; // Флаг активации drag на мобильных устройствах
+  
+  /** Проверка мобильного устройства (используем функцию вместо computed для лучшей производительности) */
+  isMobile(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768;
+  }
+
   /** Название новой категории */
   title = '';
-  
-  /** Тип категории (доход/расход) */
-  category: 'income' | 'expense' = 'income';
 
   /** Флаг демо-режима */
   isDemoMode = this.itemStore.isDemoMode;
 
-  /** Фильтр по типу категории (все/доходы/расходы) */
-  categoryFilter = signal<'all' | 'income' | 'expense'>('all');
-
-  /** Отфильтрованный и отсортированный список категорий */
+  /** Отсортированный список категорий */
   items = computed(() => {
-    let filtered = this.itemStore.items();
-    
-    // Фильтрация по типу
-    if (this.categoryFilter() !== 'all') {
-      filtered = filtered.filter(item => item.category === this.categoryFilter());
-    }
+    const filtered = this.itemStore.items();
     
     // Сортировка: сначала избранные, затем по sortOrder, затем по дате обновления
     return filtered.sort((a, b) => {
@@ -85,6 +83,46 @@ export class HomePage {
     });
 
     return { income, expense };
+  });
+
+  /** Данные для графика категорий */
+  categoriesChartData = computed(() => {
+    const items = this.itemStore.items();
+    const transactions = this.filterByPeriod(this.allTransactions(), this.selectedPeriod());
+    
+    // Группируем транзакции по категориям
+    const categoryMap = new Map<string, { income: number; expense: number }>();
+    
+    // Инициализируем все категории
+    items.forEach(item => {
+      categoryMap.set(item.id, { income: 0, expense: 0 });
+    });
+    
+    // Собираем суммы по категориям
+    transactions.forEach(tx => {
+      const categoryData = categoryMap.get(tx.item_id);
+      if (categoryData) {
+        if (tx.type === 'income') {
+          categoryData.income += tx.amount;
+        } else {
+          categoryData.expense += tx.amount;
+        }
+      }
+    });
+    
+    // Формируем массив данных для графика
+    const chartData: CategoryChartData[] = items.map(item => {
+      const data = categoryMap.get(item.id) || { income: 0, expense: 0 };
+      return {
+        id: item.id,
+        title: item.title,
+        income: data.income,
+        expense: data.expense,
+        total: data.income - data.expense // Доходы минус расходы
+      };
+    }).filter(cat => cat.income > 0 || cat.expense > 0); // Показываем только категории с транзакциями
+    
+    return chartData;
   });
 
   /** Выбранный период для общей статистики */
@@ -128,9 +166,19 @@ export class HomePage {
 
   /**
    * Создание новой категории
+   * Категория создается без типа - тип определяется при создании транзакций внутри категории
+   * @param event - событие submit формы
    */
-  async add(): Promise<void> {
-    if (!this.title.trim()) return;
+  async add(event?: Event): Promise<void> {
+    // Предотвращаем стандартное поведение формы
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!this.title.trim()) {
+      return;
+    }
     
     // В демо-режиме проверяем лимит перед попыткой создания
     if (this.isDemoMode() && !this.canCreateInDemo()) {
@@ -139,7 +187,8 @@ export class HomePage {
     }
     
     try {
-      await this.itemStore.create(this.title.trim(), this.category);
+      // Создаем категорию без типа (type будет опциональным или будет устанавливаться при первой транзакции)
+      await this.itemStore.create(this.title.trim());
       this.title = '';
       
       // Если после создания достигнут лимит, показываем модальное окно
@@ -196,6 +245,145 @@ export class HomePage {
    */
   trackByItemId(index: number, item: { id: string }): string {
     return item.id;
+  }
+
+  /** Таймер для удержания на мобильных устройствах */
+  private longPressTimer: number | null = null;
+  isDragging = false; // Публичный для использования в шаблоне
+  private touchStartTime = 0;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchMoved = false;
+
+  /**
+   * Обработчик начала касания для мобильных устройств
+   * @param event - событие touch
+   * @param item - элемент, который нужно перетаскивать
+   */
+  onTouchStart(event: TouchEvent, item: any): void {
+    // Проверяем, что это мобильное устройство
+    if (window.innerWidth <= 768) {
+      // Если уже активирован drag для другого элемента, игнорируем
+      if (this.dragActivated) {
+        return;
+      }
+      
+      const touch = event.touches[0];
+      if (!touch) return;
+      
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+      this.touchStartTime = Date.now();
+      this.isDragging = false;
+      this.touchMoved = false;
+      
+      const target = event.target as HTMLElement;
+      const dragElement = target.closest('.items-item');
+      
+      // Не запускаем drag для кнопки избранного
+      if (target.closest('.favorite-button')) {
+        return;
+      }
+      
+      // Устанавливаем таймер на 1200мс для активации drag-and-drop (увеличен для предотвращения случайной активации)
+      // Это достаточно долго, чтобы пользователь мог начать скроллить до активации
+      this.longPressTimer = window.setTimeout(() => {
+        // Проверяем, что палец не двигался значительно и drag еще не активирован
+        // Только если было минимальное движение (меньше 10px), активируем drag
+        if (!this.touchMoved && !this.dragActivated && dragElement) {
+          this.dragActivated = true;
+          this.isDragging = true;
+          // Визуальная обратная связь
+          dragElement.classList.add('drag-active');
+        }
+      }, 1200);
+    }
+  }
+
+  /**
+   * Обработчик окончания касания для мобильных устройств
+   * @param event - событие touch
+   */
+  onTouchEnd(event: TouchEvent): void {
+    if (this.longPressTimer !== null) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+    
+    const target = event.target as HTMLElement;
+    const itemElement = target.closest('.items-item');
+    
+    if (itemElement) {
+      itemElement.classList.remove('drag-active');
+    }
+    
+    // Если не было активации drag и не было значительного движения - открываем категорию
+    if (window.innerWidth <= 768 && !this.dragActivated && !this.touchMoved && itemElement) {
+      // Находим ID категории и открываем ее
+      const itemTitle = itemElement.querySelector('.items-item-title');
+      if (itemTitle) {
+        const item = this.items().find(i => i.title === itemTitle.textContent?.trim());
+        if (item) {
+          this.open(item.id);
+        }
+      }
+    }
+    
+    // Сбрасываем состояние
+    this.isDragging = false;
+    this.dragActivated = false;
+    this.touchStartTime = 0;
+    this.touchMoved = false;
+  }
+
+  /**
+   * Обработчик движения касания - определяет скроллинг или drag
+   * КРИТИЧЕСКИ ВАЖНО: При вертикальном движении (скроллинге) сразу отменяем drag
+   * @param event - событие touch
+   */
+  onTouchMove(event: TouchEvent): void {
+    if (window.innerWidth <= 768 && !this.dragActivated) {
+      const touch = event.touches[0];
+      if (!touch) return;
+      
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      
+      // Если есть ЛЮБОЕ движение (больше 2px) - отмечаем, что палец двигался
+      if (deltaX > 2 || deltaY > 2) {
+        this.touchMoved = true;
+        
+        // КРИТИЧЕСКИ ВАЖНО: Если есть вертикальное движение (скроллинг) - сразу отменяем drag
+        // Приоритет скроллинга выше, чем drag-and-drop
+        if (deltaY > 3) {
+          // Это скроллинг, полностью отменяем drag и очищаем таймер
+          if (this.longPressTimer !== null) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+          this.isDragging = false;
+          this.dragActivated = false;
+          // КРИТИЧЕСКИ ВАЖНО: НЕ вызываем preventDefault(), чтобы браузер мог обработать скроллинг
+          return;
+        }
+        
+        // Если движение преимущественно вертикальное (deltaY >= deltaX) - тоже скроллинг
+        if (deltaY >= deltaX && deltaY > 2) {
+          if (this.longPressTimer !== null) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+          return;
+        }
+        
+        // Для любого значительного движения (больше 8px) также отменяем таймер
+        // Это предотвращает активацию drag при любом движении пальца
+        if ((deltaX > 8 || deltaY > 8) && this.longPressTimer !== null) {
+          clearTimeout(this.longPressTimer);
+          this.longPressTimer = null;
+        }
+      }
+    }
   }
 
   /**

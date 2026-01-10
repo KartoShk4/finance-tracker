@@ -4,6 +4,7 @@
     <div class="demo-banner-content">
       <span class="demo-icon">🎭</span>
       <span class="demo-text">Демо-режим: вы видите пример данных. Войдите в систему, чтобы создавать и сохранять свои категории.</span>
+      <button class="demo-login-btn" (click)="scrollToTop()">Войти</button>
     </div>
   </div>
 
@@ -11,64 +12,42 @@
     <div class="home-content">
       <!-- Форма добавления нового item -->
       <div class="home-form" [class.demo-disabled]="isDemoMode() && !canCreateInDemo()">
-        <form (submit)="add(); $event.preventDefault()">
+        <form (submit)="add($event)">
           <div class="form-row">
-            <input
-              type="text"
-              [(ngModel)]="title"
-              name="title"
+            <input 
+              type="text" 
+              [(ngModel)]="title" 
+              name="title" 
               [placeholder]="isDemoMode() && !canCreateInDemo() ? 'Лимит достигнут. Войдите для создания' : (isDemoMode() ? `Демо: можно создать ${DEMO_LIMIT - userItemsCount()} категори${DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и'}` : 'Название категории')"
               [disabled]="isDemoMode() && !canCreateInDemo()"
               required />
-            <select [(ngModel)]="category" name="category" [disabled]="isDemoMode() && !canCreateInDemo()">
-              <option value="income">Доход</option>
-              <option value="expense">Расход</option>
-            </select>
             <button type="submit" [disabled]="isDemoMode() && !canCreateInDemo()">Добавить</button>
           </div>
         </form>
         <div *ngIf="isDemoMode()" class="demo-form-hint">
           <span *ngIf="canCreateInDemo()">
-            🎭 Демо-режим: вы можете создать {{ DEMO_LIMIT - userItemsCount() }} категори{{ DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и' }} для теста.
+            🎭 Демо-режим: вы можете создать {{ DEMO_LIMIT - userItemsCount() }} категори{{ DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и' }} для теста. 
             <strong>Войдите в систему</strong>, чтобы создавать неограниченное количество категорий.
           </span>
           <span *ngIf="!canCreateInDemo()">
-            Достигнут лимит демо-режима ({{ DEMO_LIMIT }} категории). Войдите в систему, чтобы создавать неограниченное количество категорий.
+            Достигнут лимит демо-режима ({{ DEMO_LIMIT }} категории). <strong>Войдите в систему</strong>, чтобы создавать неограниченное количество категорий.
           </span>
         </div>
       </div>
 
-      <!-- Фильтр по типу категории -->
-      <div class="home-filter">
-        <button
-          class="filter-button"
-          [class.active]="categoryFilter() === 'all'"
-          (click)="categoryFilter.set('all')">
-          Все
-        </button>
-        <button
-          class="filter-button"
-          [class.active]="categoryFilter() === 'income'"
-          (click)="categoryFilter.set('income')">
-          Доходы
-        </button>
-        <button
-          class="filter-button"
-          [class.active]="categoryFilter() === 'expense'"
-          (click)="categoryFilter.set('expense')">
-          Расходы
-        </button>
-      </div>
-
       <!-- Список items -->
       <div class="items-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
-        <div
+        <div 
           *ngFor="let item of items(); trackBy: trackByItemId"
           class="items-item"
           [class.favorite]="item.isFavorite"
-          cdkDrag>
-          <div class="items-item-content" (click)="open(item.id)">
-            <button
+          [cdkDragDisabled]="isMobile() && !dragActivated"
+          cdkDrag
+          (touchstart)="onTouchStart($event, item)"
+          (touchend)="onTouchEnd($event)"
+          (touchmove)="onTouchMove($event)">
+          <div class="items-item-content" (click)="!isDragging && !dragActivated && open(item.id)">
+            <button 
               class="favorite-button"
               [class.active]="item.isFavorite"
               (click)="toggleFavorite(item.id, $event)"
@@ -85,7 +64,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- Пустое состояние -->
         <div *ngIf="items().length === 0" class="items-empty">
           <p>Нет категорий. Создайте первую категорию для отслеживания финансов.</p>
@@ -105,10 +84,15 @@
             {{ p.label }}
           </button>
         </div>
+        <!-- Первый график: общие доходы и расходы -->
         <app-pie-chart
           [income]="statistics().income"
           [expense]="statistics().expense">
         </app-pie-chart>
+        <!-- Второй график: категории с их доходами и расходами -->
+        <app-categories-chart
+          [categories]="categoriesChartData()">
+        </app-categories-chart>
       </div>
     </div>
   </div>
@@ -129,10 +113,15 @@
             {{ p.label }}
           </button>
         </div>
+        <!-- Первый график: общие доходы и расходы -->
         <app-pie-chart
           [income]="statistics().income"
           [expense]="statistics().expense">
         </app-pie-chart>
+        <!-- Второй график: категории с их доходами и расходами -->
+        <app-categories-chart
+          [categories]="categoriesChartData()">
+        </app-categories-chart>
       </div>
     </div>
   </div>

@@ -142,6 +142,14 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
         if (VKID.Auth && typeof VKID.Auth.exchangeCode === 'function') {
           VKID.Auth.exchangeCode(code, deviceId)
             .then((tokenData: any) => {
+              // Проверяем ошибки расширений браузера
+              if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
+                const lastError = chrome.runtime.lastError.message;
+                if (lastError && !lastError.includes('message port closed')) {
+                  console.warn('Chrome runtime error (ignored):', lastError);
+                }
+              }
+              
               console.log('FloatingOneTap auth success:', tokenData);
               // Закрываем FloatingOneTap после успешной авторизации
               if (this.floatingOneTap) {
@@ -155,10 +163,27 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
               });
             })
             .catch((error: any) => {
+              // Игнорируем ошибки расширений браузера
+              const errorMessage = error?.message || error?.toString() || '';
+              if (
+                errorMessage.includes('runtime.lastError') ||
+                errorMessage.includes('message port closed') ||
+                errorMessage.includes('Extension context invalidated') ||
+                errorMessage.includes('The message port closed before a response was received')
+              ) {
+                // Это ошибка расширения, не критическая - продолжаем работу
+                console.warn('Игнорируем ошибку расширения браузера:', errorMessage);
+                // Пробуем передать payload напрямую, возможно токен уже есть
+                this.auth.handleLoginSuccess(payload);
+                return;
+              }
+              
               console.error('FloatingOneTap exchange code error:', error);
             });
         } else {
           console.error('VKID.Auth.exchangeCode не доступен');
+          // Передаем payload напрямую, возможно токен уже есть
+          this.auth.handleLoginSuccess(payload);
         }
       });
 

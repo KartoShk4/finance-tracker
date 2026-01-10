@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../supabase/supabase.service';
+import { VkAuthService } from '../auth/auth.service';
 import { Transaction } from '../../features/transactions/transaction.model';
 import { TransactionRepository } from './transaction.repository';
 
@@ -9,26 +10,63 @@ import { TransactionRepository } from './transaction.repository';
  */
 @Injectable({ providedIn: 'root' })
 export class TransactionSupabaseRepository implements TransactionRepository {
+  private authService = inject(VkAuthService);
+  
   constructor(private supabase: SupabaseService) {}
+  
+  /**
+   * Получает текущий user_id для фильтрации данных
+   */
+  private getUserId(): string | null {
+    const user = this.authService.user();
+    return user?.id || null;
+  }
 
-  // Получаем все транзакции
+  // Получаем все транзакции текущего пользователя
   async getAll(): Promise<Transaction[]> {
+    const userId = this.getUserId();
+    
+    if (!userId) {
+      console.warn('User ID not available, returning empty array');
+      return [];
+    }
+    
+    // Получаем транзакции с фильтрацией по user_id (поле существует в таблице)
     const { data, error } = await this.supabase.client
       .from('transactions')
-      .select('id,item_id,subcategory_id,type,amount,date,notes'); // Включаем subcategory_id и notes
+      .select('id,item_id,subcategory_id,type,amount,date,notes,user_id')
+      .eq('user_id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching transactions:', error);
+      throw error;
+    }
+    
     return (data ?? []) as Transaction[];
   }
 
-  // Сохраняем все транзакции (используем upsert для обновления существующих и вставки новых)
+  // Сохраняем все транзакции текущего пользователя
   async save(list: Transaction[]): Promise<void> {
     try {
-      // Если список пустой, удаляем все транзакции
+      const userId = this.getUserId();
+      
+      if (!userId) {
+        throw new Error('User ID not available, cannot save transactions');
+      }
+      
+      // Добавляем user_id к каждой транзакции перед сохранением
+      // Поле user_id существует в таблице transactions (тип text)
+      const transactionsToSave = list.map(tx => ({
+        ...tx,
+        user_id: userId
+      })) as any[];
+      
+      // Если список пустой, удаляем все транзакции текущего пользователя
       if (list.length === 0) {
         const { data: existingData, error: selectError } = await this.supabase.client
           .from('transactions')
-          .select('id');
+          .select('id')
+          .eq('user_id', userId);
         
         if (selectError) throw selectError;
         
@@ -44,27 +82,29 @@ export class TransactionSupabaseRepository implements TransactionRepository {
         return;
       }
 
-      // Используем upsert для обновления существующих и вставки новых записей
+      // Используем upsert с user_id, так как поле существует в таблице
       const { error: upsertError } = await this.supabase.client
         .from('transactions')
-        .upsert(list, { onConflict: 'id' });
+        .upsert(transactionsToSave, { onConflict: 'id' });
       
       if (upsertError) {
         console.error('Upsert error:', upsertError);
-        console.error('Trying to upsert:', list);
+        console.error('Trying to upsert:', transactionsToSave);
         throw upsertError;
       }
       
-      // Удаляем транзакции, которых нет в новом списке
+      // Удаляем транзакции текущего пользователя, которых нет в новом списке
       const newIds = new Set(list.map(t => t.id));
-      const { data: allTransactions, error: selectError } = await this.supabase.client
+      
+      const { data: userTransactions, error: selectError } = await this.supabase.client
         .from('transactions')
-        .select('id');
+        .select('id')
+        .eq('user_id', userId);
       
       if (selectError) throw selectError;
       
-      if (allTransactions) {
-        const idsToDelete = allTransactions
+      if (userTransactions) {
+        const idsToDelete = userTransactions
           .map(t => t.id)
           .filter(id => !newIds.has(id));
         
