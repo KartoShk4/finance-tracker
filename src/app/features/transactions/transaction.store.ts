@@ -87,50 +87,81 @@ export class TransactionStore {
 
   /**
    * Загрузка демо-транзакций для неавторизованных пользователей
+   * Создаем больше транзакций с разными датами для демонстрации графиков
    */
   private async loadDemoTransactions(): Promise<void> {
-    const demoTransactions: Transaction[] = [
-      {
-        id: 'demo-tx-1',
-        item_id: 'demo-1',
-        type: 'income',
-        amount: 50000,
-        date: new Date().toISOString(),
-        notes: 'Зарплата за месяц'
-      },
-      {
-        id: 'demo-tx-2',
-        item_id: 'demo-2',
-        type: 'expense',
-        amount: 5000,
-        date: new Date(Date.now() - 86400000).toISOString(),
-        notes: 'Продукты на неделю'
-      },
-      {
-        id: 'demo-tx-3',
-        item_id: 'demo-2',
-        type: 'expense',
-        amount: 3000,
-        date: new Date(Date.now() - 172800000).toISOString(),
-        notes: 'Овощи и фрукты'
-      },
-      {
-        id: 'demo-tx-4',
-        item_id: 'demo-3',
-        type: 'expense',
-        amount: 1500,
-        date: new Date(Date.now() - 259200000).toISOString(),
-        notes: 'Проездной'
-      },
-      {
-        id: 'demo-tx-5',
-        item_id: 'demo-4',
-        type: 'expense',
-        amount: 2000,
-        date: new Date(Date.now() - 345600000).toISOString(),
-        notes: 'Кино'
-      }
-    ];
+    const now = new Date();
+    const demoTransactions: Transaction[] = [];
+
+    // Функция для создания даты N дней назад
+    const daysAgo = (days: number): string => {
+      const date = new Date(now);
+      date.setDate(date.getDate() - days);
+      date.setHours(Math.floor(Math.random() * 12) + 9, Math.floor(Math.random() * 60), 0, 0);
+      return date.toISOString();
+    };
+
+    // Доходы - Зарплата (demo-1)
+    demoTransactions.push(
+      { id: 'demo-tx-1', item_id: 'demo-1', type: 'income', amount: 50000, date: daysAgo(2), notes: 'Зарплата за январь' }
+    );
+
+    // Доходы - Фриланс (demo-7)
+    demoTransactions.push(
+      { id: 'demo-tx-f1', item_id: 'demo-7', type: 'income', amount: 15000, date: daysAgo(4), notes: 'Проект #1' },
+      { id: 'demo-tx-f2', item_id: 'demo-7', type: 'income', amount: 10000, date: daysAgo(8), notes: 'Проект #2' }
+    );
+
+    // Расходы - Продукты (demo-2) - несколько транзакций для графика
+    demoTransactions.push(
+      { id: 'demo-tx-p1', item_id: 'demo-2', type: 'expense', amount: 8500, date: daysAgo(0), notes: 'Большой магазин на неделю' },
+      { id: 'demo-tx-p2', item_id: 'demo-2', type: 'expense', amount: 3200, date: daysAgo(3), notes: 'Овощи и фрукты' },
+      { id: 'demo-tx-p3', item_id: 'demo-2', type: 'expense', amount: 4800, date: daysAgo(7), notes: 'Молочные продукты' },
+      { id: 'demo-tx-p4', item_id: 'demo-2', type: 'expense', amount: 2900, date: daysAgo(10), notes: 'Хлеб и выпечка' },
+      { id: 'demo-tx-p5', item_id: 'demo-2', type: 'expense', amount: 4100, date: daysAgo(14), notes: 'Мясо и рыба' }
+    );
+
+    // Расходы - Транспорт (demo-3)
+    demoTransactions.push(
+      { id: 'demo-tx-t1', item_id: 'demo-3', type: 'expense', amount: 1500, date: daysAgo(0), notes: 'Проездной на месяц' },
+      { id: 'demo-tx-t2', item_id: 'demo-3', type: 'expense', amount: 500, date: daysAgo(5), notes: 'Такси' },
+      { id: 'demo-tx-t3', item_id: 'demo-3', type: 'expense', amount: 800, date: daysAgo(12), notes: 'Бензин' },
+      { id: 'demo-tx-t4', item_id: 'demo-3', type: 'expense', amount: 1700, date: daysAgo(15), notes: 'Проездной предыдущий месяц' }
+    );
+
+    // Расходы - Развлечения (demo-4)
+    demoTransactions.push(
+      { id: 'demo-tx-e1', item_id: 'demo-4', type: 'expense', amount: 2500, date: daysAgo(1), notes: 'Кинотеатр' },
+      { id: 'demo-tx-e2', item_id: 'demo-4', type: 'expense', amount: 4500, date: daysAgo(4), notes: 'Ресторан' },
+      { id: 'demo-tx-e3', item_id: 'demo-4', type: 'expense', amount: 3000, date: daysAgo(9), notes: 'Концерт' },
+      { id: 'demo-tx-e4', item_id: 'demo-4', type: 'expense', amount: 2000, date: daysAgo(13), notes: 'Боулинг' }
+    );
+
+    // Расходы - Коммунальные услуги (demo-5)
+    demoTransactions.push(
+      { id: 'demo-tx-u1', item_id: 'demo-5', type: 'expense', amount: 3500, date: daysAgo(5), notes: 'Электричество' },
+      { id: 'demo-tx-u2', item_id: 'demo-5', type: 'expense', amount: 2500, date: daysAgo(6), notes: 'Вода и канализация' },
+      { id: 'demo-tx-u3', item_id: 'demo-5', type: 'expense', amount: 2000, date: daysAgo(7), notes: 'Отопление' }
+    );
+
+    // Расходы - Одежда (demo-6)
+    demoTransactions.push(
+      { id: 'demo-tx-c1', item_id: 'demo-6', type: 'expense', amount: 8500, date: daysAgo(7), notes: 'Куртка' },
+      { id: 'demo-tx-c2', item_id: 'demo-6', type: 'expense', amount: 3500, date: daysAgo(8), notes: 'Обувь' },
+      { id: 'demo-tx-c3', item_id: 'demo-6', type: 'expense', amount: 3000, date: daysAgo(9), notes: 'Джинсы' }
+    );
+
+    // Расходы - Кафе и рестораны (demo-8)
+    demoTransactions.push(
+      { id: 'demo-tx-r1', item_id: 'demo-8', type: 'expense', amount: 1200, date: daysAgo(0), notes: 'Кофе на работе' },
+      { id: 'demo-tx-r2', item_id: 'demo-8', type: 'expense', amount: 1800, date: daysAgo(2), notes: 'Обед в кафе' },
+      { id: 'demo-tx-r3', item_id: 'demo-8', type: 'expense', amount: 2500, date: daysAgo(4), notes: 'Ужин в ресторане' },
+      { id: 'demo-tx-r4', item_id: 'demo-8', type: 'expense', amount: 900, date: daysAgo(6), notes: 'Быстрый обед' },
+      { id: 'demo-tx-r5', item_id: 'demo-8', type: 'expense', amount: 2100, date: daysAgo(8), notes: 'Кофе и десерт' }
+    );
+
+    // Сортируем по дате (от новых к старым)
+    demoTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     this._tx.set(demoTransactions);
     await this.repo.save(demoTransactions);

@@ -89,13 +89,14 @@ export class ItemStore {
    * Загрузка демо-данных для неавторизованных пользователей
    */
   private async loadDemoData(): Promise<void> {
+    const now = new Date();
     const demoItems: Item[] = [
       {
         id: 'demo-1',
         title: 'Зарплата',
         category: 'income',
         total: 50000,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: now.toISOString(),
         isFavorite: true,
         sortOrder: 0
       },
@@ -103,8 +104,8 @@ export class ItemStore {
         id: 'demo-2',
         title: 'Продукты',
         category: 'expense',
-        total: 15000,
-        lastUpdated: new Date().toISOString(),
+        total: 23500, // 8500 + 3200 + 4800 + 2900 + 4100
+        lastUpdated: new Date(now.getTime() - 86400000).toISOString(),
         isFavorite: true,
         sortOrder: 1
       },
@@ -112,17 +113,50 @@ export class ItemStore {
         id: 'demo-3',
         title: 'Транспорт',
         category: 'expense',
-        total: 3000,
-        lastUpdated: new Date().toISOString(),
+        total: 4500, // 1500 + 500 + 800 + 1700
+        lastUpdated: new Date(now.getTime() - 2 * 86400000).toISOString(),
         sortOrder: 2
       },
       {
         id: 'demo-4',
         title: 'Развлечения',
         category: 'expense',
-        total: 5000,
-        lastUpdated: new Date().toISOString(),
+        total: 12000, // 2500 + 4500 + 3000 + 2000
+        lastUpdated: new Date(now.getTime() - 3 * 86400000).toISOString(),
         sortOrder: 3
+      },
+      {
+        id: 'demo-5',
+        title: 'Коммунальные услуги',
+        category: 'expense',
+        total: 8000, // 3500 + 2500 + 2000
+        lastUpdated: new Date(now.getTime() - 5 * 86400000).toISOString(),
+        isFavorite: true,
+        sortOrder: 4
+      },
+      {
+        id: 'demo-6',
+        title: 'Одежда',
+        category: 'expense',
+        total: 15000, // 8500 + 3500 + 3000
+        lastUpdated: new Date(now.getTime() - 7 * 86400000).toISOString(),
+        sortOrder: 5
+      },
+      {
+        id: 'demo-7',
+        title: 'Фриланс',
+        category: 'income',
+        total: 25000, // 15000 + 10000
+        lastUpdated: new Date(now.getTime() - 4 * 86400000).toISOString(),
+        sortOrder: 6
+      },
+      {
+        id: 'demo-8',
+        title: 'Кафе и рестораны',
+        category: 'expense',
+        total: 8500, // 1200 + 1800 + 2500 + 900 + 2100
+        lastUpdated: new Date(now.getTime() - 1 * 86400000).toISOString(),
+        sortOrder: 7
       }
     ];
     

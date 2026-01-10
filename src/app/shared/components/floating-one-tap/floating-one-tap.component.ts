@@ -65,12 +65,12 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // Показываем FloatingOneTap через 10 секунд
+    // Показываем FloatingOneTap через 30 секунд
     this.showTimer = setTimeout(() => {
       if (!this.auth.isAuthenticated() && !this.isRendered) {
         this.initFloatingOneTap();
       }
-    }, 10000); // 10 секунд
+    }, 30000); // 30 секунд
   }
 
   private initFloatingOneTap() {
