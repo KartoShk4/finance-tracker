@@ -20,5 +20,9 @@ export class LocalTransactionRepository implements TransactionRepository {
   async save(list: Transaction[]): Promise<void> {
     this.storage.set(this.KEY, list);
   }
+
+  async clear(): Promise<void> {
+    localStorage.removeItem(this.KEY);
+  }
 }
 

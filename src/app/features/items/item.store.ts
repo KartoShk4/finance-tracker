@@ -70,17 +70,28 @@ export class ItemStore {
   async load(): Promise<void> {
     try {
       const data = await this.repo.getAll();
-      this._items.set(data);
       
-      // Если демо-режим и нет данных, загружаем демо-контент
-      if (this.isDemoMode() && data.length === 0) {
-        this.loadDemoData();
+      // Если демо-режим, проверяем версию демо-данных
+      if (this.isDemoMode()) {
+        const hasDemoData = data.length > 0 && data.some(item => item.id.startsWith('demo-'));
+        const hasNewDemoData = data.length > 0 && data.some(item => item.id === 'demo-7' || item.id === 'demo-8');
+        
+        // Если нет данных или есть старые демо-данные (без demo-7 и demo-8), загружаем новые
+        if (data.length === 0 || (hasDemoData && !hasNewDemoData)) {
+          console.log('Обнаружены старые демо-данные, обновляю...');
+          // Очищаем старые данные перед загрузкой новых
+          await this.localRepo.clear();
+          await this.loadDemoData();
+          return;
+        }
       }
+      
+      this._items.set(data);
     } catch (error) {
       console.error('Ошибка загрузки категорий:', error);
       // В случае ошибки в демо-режиме загружаем демо-данные
       if (this.isDemoMode()) {
-        this.loadDemoData();
+        await this.loadDemoData();
       }
     }
   }
@@ -89,6 +100,7 @@ export class ItemStore {
    * Загрузка демо-данных для неавторизованных пользователей
    */
   private async loadDemoData(): Promise<void> {
+    console.log('Загрузка новых демо-данных категорий...');
     const now = new Date();
     const demoItems: Item[] = [
       {
@@ -160,8 +172,10 @@ export class ItemStore {
       }
     ];
     
-    this._items.set(demoItems);
+    // Сохраняем и обновляем состояние
     await this.repo.save(demoItems);
+    this._items.set(demoItems);
+    console.log('Демо-данные категорий загружены:', demoItems.length, 'категорий');
   }
 
   /**

@@ -20,4 +20,8 @@ export class LocalItemRepository implements ItemRepository {
   async save(items: Item[]): Promise<void> {
     this.storage.set(this.KEY, items);
   }
+
+  async clear(): Promise<void> {
+    localStorage.removeItem(this.KEY);
+  }
 }

@@ -70,17 +70,31 @@ export class TransactionStore {
   async load(): Promise<void> {
     try {
       const data = await this.repo.getAll();
-      this._tx.set(data);
       
-      // Если демо-режим и нет данных, загружаем демо-транзакции для демо-категорий
-      if (this.isDemoMode() && data.length === 0) {
-        this.loadDemoTransactions();
+      // Если демо-режим, проверяем версию демо-данных
+      if (this.isDemoMode()) {
+        const hasDemoData = data.length > 0 && data.some(tx => tx.id.startsWith('demo-tx-'));
+        const hasNewDemoData = data.length > 0 && data.some(tx => 
+          tx.id === 'demo-tx-f1' || tx.id === 'demo-tx-p5' || tx.id === 'demo-tx-r5' ||
+          tx.id === 'demo-tx-u1' || tx.id === 'demo-tx-c1'
+        );
+        
+        // Если нет данных или есть старые демо-данные (без новых ID), загружаем новые
+        if (data.length === 0 || (hasDemoData && !hasNewDemoData)) {
+          console.log('Обнаружены старые демо-транзакции, обновляю...');
+          // Очищаем старые данные перед загрузкой новых
+          await this.localRepo.clear();
+          await this.loadDemoTransactions();
+          return;
+        }
       }
+      
+      this._tx.set(data);
     } catch (error) {
       console.error('Ошибка загрузки транзакций:', error);
       // В случае ошибки в демо-режиме загружаем демо-данные
       if (this.isDemoMode()) {
-        this.loadDemoTransactions();
+        await this.loadDemoTransactions();
       }
     }
   }
@@ -90,6 +104,7 @@ export class TransactionStore {
    * Создаем больше транзакций с разными датами для демонстрации графиков
    */
   private async loadDemoTransactions(): Promise<void> {
+    console.log('Загрузка новых демо-транзакций...');
     const now = new Date();
     const demoTransactions: Transaction[] = [];
 
@@ -163,8 +178,10 @@ export class TransactionStore {
     // Сортируем по дате (от новых к старым)
     demoTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    this._tx.set(demoTransactions);
+    // Сохраняем и обновляем состояние
     await this.repo.save(demoTransactions);
+    this._tx.set(demoTransactions);
+    console.log('Демо-транзакции загружены:', demoTransactions.length, 'транзакций');
   }
 
   /**
