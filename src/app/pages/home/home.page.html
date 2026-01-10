@@ -1,23 +1,36 @@
 <div class="home-page">
+  <!-- Индикатор демо-режима -->
+  <div *ngIf="isDemoMode()" class="demo-banner">
+    <div class="demo-banner-content">
+      <span class="demo-icon">🎭</span>
+      <span class="demo-text">Демо-режим: вы видите пример данных. Войдите в систему, чтобы создавать и сохранять свои категории.</span>
+      <button class="demo-login-btn" (click)="scrollToTop()">Войти</button>
+    </div>
+  </div>
+
   <div class="home-layout">
     <div class="home-content">
       <!-- Форма добавления нового item -->
-      <div class="home-form">
+      <div class="home-form" [class.demo-disabled]="isDemoMode()">
         <form (submit)="add(); $event.preventDefault()">
           <div class="form-row">
             <input 
               type="text" 
               [(ngModel)]="title" 
               name="title" 
-              placeholder="Название категории"
+              [placeholder]="isDemoMode() ? 'Войдите, чтобы создавать категории' : 'Название категории'"
+              [disabled]="isDemoMode()"
               required />
-            <select [(ngModel)]="category" name="category">
+            <select [(ngModel)]="category" name="category" [disabled]="isDemoMode()">
               <option value="income">Доход</option>
               <option value="expense">Расход</option>
             </select>
-            <button type="submit">Добавить</button>
+            <button type="submit" [disabled]="isDemoMode()">Добавить</button>
           </div>
         </form>
+        <div *ngIf="isDemoMode()" class="demo-form-hint">
+          Войдите в систему, чтобы создавать свои категории
+        </div>
       </div>
 
       <!-- Фильтр по типу категории -->

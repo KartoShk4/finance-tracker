@@ -8,6 +8,34 @@
   gap: var(--space-xl);
 }
 
+/* Демо-баннер */
+.demo-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-lg);
+}
+
+.demo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.demo-icon {
+  font-size: 1.5rem;
+}
+
+.demo-text {
+  flex: 1;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  min-width: 200px;
+}
+
 /* Заголовок страницы */
 .page-header {
   display: flex;
@@ -63,6 +91,23 @@
   padding: var(--space-lg);
   box-shadow: var(--shadow-sm);
   margin-bottom: var(--space-lg);
+  
+  &.demo-disabled {
+    opacity: 0.7;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.02);
+      border-radius: var(--radius-lg);
+      pointer-events: none;
+    }
+  }
   
   .form-header {
     margin-bottom: var(--space-lg);
@@ -137,6 +182,21 @@
     &::-webkit-outer-spin-button {
       opacity: 1;
     }
+    
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+  
+  .demo-form-hint {
+    margin-top: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-bg-secondary);
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
   }
 
   /* Блок подкатегорий */
@@ -144,6 +204,11 @@
     margin-top: var(--space-lg);
     padding-top: var(--space-lg);
     border-top: 1px solid var(--color-border);
+    
+    &.demo-disabled {
+      opacity: 0.7;
+      pointer-events: none;
+    }
   }
 
   .subcategories-header {
@@ -171,6 +236,13 @@
     flex-wrap: wrap;
     gap: var(--space-sm);
     margin-bottom: var(--space-md);
+    
+    .subcategory-tag {
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
   }
 
   .subcategory-tag {
@@ -185,7 +257,7 @@
     transition: all var(--transition-fast);
     white-space: nowrap;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: var(--color-bg-tertiary);
       border-color: var(--color-border-hover);
       color: var(--color-text-primary);

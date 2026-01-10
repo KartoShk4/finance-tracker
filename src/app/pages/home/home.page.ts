@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ItemStore } from '../../features/items/item.store';
 import { TransactionStore } from '../../features/transactions/transaction.store';
+import { VkAuthService } from '../../core/auth/auth.service';
 import { PieChartComponent } from '../../shared/components/pie-chart/pie-chart.component';
 import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 import { PeriodType } from '../../shared/utils/chart.utils';
@@ -23,12 +24,16 @@ export class HomePage {
   private itemStore = inject(ItemStore);
   private txStore = inject(TransactionStore);
   private router = inject(Router);
+  private authService = inject(VkAuthService);
 
   /** Название новой категории */
   title = '';
   
   /** Тип категории (доход/расход) */
   category: 'income' | 'expense' = 'income';
+
+  /** Флаг демо-режима */
+  isDemoMode = this.itemStore.isDemoMode;
 
   /** Фильтр по типу категории (все/доходы/расходы) */
   categoryFilter = signal<'all' | 'income' | 'expense'>('all');
@@ -102,11 +107,15 @@ export class HomePage {
   /**
    * Создание новой категории
    */
-  add(): void {
+  async add(): Promise<void> {
     if (!this.title.trim()) return;
     
-    this.itemStore.create(this.title.trim(), this.category);
-    this.title = '';
+    try {
+      await this.itemStore.create(this.title.trim(), this.category);
+      this.title = '';
+    } catch (error: any) {
+      alert(error.message || 'Ошибка при создании категории. Войдите в систему, чтобы создавать категории.');
+    }
   }
 
   /**
@@ -125,7 +134,21 @@ export class HomePage {
    */
   async toggleFavorite(id: string, event: Event): Promise<void> {
     event.stopPropagation();
+    
+    // В демо-режиме запрещаем изменение избранного
+    if (this.isDemoMode()) {
+      alert('Войдите в систему, чтобы изменять избранное');
+      return;
+    }
+    
     await this.itemStore.toggleFavorite(id);
+  }
+
+  /**
+   * Прокрутка к верху страницы (для демо-баннера)
+   */
+  scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**

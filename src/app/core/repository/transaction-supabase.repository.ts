@@ -1,9 +1,14 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Transaction } from '../../features/transactions/transaction.model';
+import { TransactionRepository } from './transaction.repository';
 
+/**
+ * Репозиторий для работы с транзакциями в Supabase
+ * Используется для авторизованных пользователей
+ */
 @Injectable({ providedIn: 'root' })
-export class TransactionSupabaseRepository {
+export class TransactionSupabaseRepository implements TransactionRepository {
   constructor(private supabase: SupabaseService) {}
 
   // Получаем все транзакции

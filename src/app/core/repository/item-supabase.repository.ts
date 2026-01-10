@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Item } from '../../features/items/item.model';
+import { ItemRepository } from './item.repository';
 
 /**
  * Интерфейс для данных в Supabase (snake_case)
@@ -19,9 +20,10 @@ interface ItemRow {
 /**
  * Репозиторий для работы с категориями (items) в Supabase
  * Обеспечивает преобразование данных между форматами TypeScript и Supabase
+ * Используется для авторизованных пользователей
  */
 @Injectable({ providedIn: 'root' })
-export class ItemSupabaseRepository {
+export class ItemSupabaseRepository implements ItemRepository {
   constructor(private supabase: SupabaseService) {}
 
   /**

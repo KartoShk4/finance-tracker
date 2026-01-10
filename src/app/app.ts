@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { VkLoginComponent } from './shared/components/vk-login/vk-login.components';
+import { FloatingOneTapComponent } from './shared/components/floating-one-tap/floating-one-tap.component';
 import { VkAuthService } from './core/auth/auth.service';
 
 /**
@@ -11,7 +12,14 @@ import { VkAuthService } from './core/auth/auth.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, VkLoginComponent],
+  imports: [
+    RouterOutlet, 
+    RouterLink, 
+    RouterLinkActive, 
+    CommonModule, 
+    VkLoginComponent,
+    FloatingOneTapComponent
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

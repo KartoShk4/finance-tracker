@@ -14,9 +14,16 @@
           <app-vk-login></app-vk-login>
         </div>
         <div *ngIf="authService.isAuthenticated()" class="auth-user">
-          <span class="auth-user-name">
-            {{ authService.user()?.firstName }} {{ authService.user()?.lastName }}
-          </span>
+          <div class="auth-user-info">
+            <img 
+              *ngIf="authService.user()?.photo" 
+              [src]="authService.user()?.photo" 
+              [alt]="authService.user()?.firstName"
+              class="auth-user-photo" />
+            <span class="auth-user-name">
+              {{ authService.user()?.firstName }} {{ authService.user()?.lastName }}
+            </span>
+          </div>
           <button
             class="auth-button auth-button-out"
             (click)="signOut()"
@@ -31,4 +38,7 @@
   <main class="app-content">
     <router-outlet />
   </main>
+
+  <!-- FloatingOneTap для неавторизованных пользователей -->
+  <app-floating-one-tap *ngIf="!authService.isAuthenticated() && !authService.loading()"></app-floating-one-tap>
 </div>

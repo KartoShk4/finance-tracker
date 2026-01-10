@@ -87,6 +87,20 @@
   gap: var(--space-md);
 }
 
+.auth-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.auth-user-photo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-border);
+}
+
 .auth-user-name {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
@@ -94,6 +108,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .auth-button {

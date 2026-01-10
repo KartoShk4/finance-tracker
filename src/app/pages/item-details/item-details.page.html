@@ -1,8 +1,17 @@
 <div class="item-details-page">
+  <!-- Демо-баннер для демо-режима -->
+  <div *ngIf="isDemoMode()" class="demo-banner">
+    <div class="demo-banner-content">
+      <span class="demo-icon">🎭</span>
+      <span class="demo-text">Демо-режим: вы видите пример данных. Войдите в систему, чтобы создавать и сохранять свои транзакции.</span>
+    </div>
+  </div>
+
   <!-- Заголовок с кнопками -->
   <div class="page-header">
     <a routerLink="/" class="back-button">← Назад к списку</a>
     <button 
+      *ngIf="!isDemoMode()"
       class="delete-category-button"
       (click)="openDeleteCategoryModal()"
       title="Удалить категорию">
@@ -11,7 +20,7 @@
   </div>
 
   <!-- Форма добавления транзакции -->
-  <div class="transaction-form">
+  <div class="transaction-form" [class.demo-disabled]="isDemoMode()">
     <div class="form-header" *ngIf="currentItem()">
       <div class="category-info">
         <span class="category-badge" [class.income]="currentItem()!.category === 'income'" [class.expense]="currentItem()!.category === 'expense'">
@@ -28,15 +37,17 @@
           type="number" 
           [(ngModel)]="amount" 
           name="amount" 
-          placeholder="Сумма"
+          [placeholder]="isDemoMode() ? 'Войдите, чтобы добавлять транзакции' : 'Сумма'"
+          [disabled]="isDemoMode()"
           min="0.01"
           step="0.01"
           required />
         <app-date-time-picker
           [(ngModel)]="transactionDate"
-          name="transactionDate">
+          name="transactionDate"
+          [disabled]="isDemoMode()">
         </app-date-time-picker>
-        <button type="submit">Добавить</button>
+        <button type="submit" [disabled]="isDemoMode()">Добавить</button>
       </div>
       
       <div class="form-row">
@@ -44,13 +55,17 @@
           type="text" 
           [(ngModel)]="notes" 
           name="notes" 
-          placeholder="Примечание (необязательно)"
+          [placeholder]="isDemoMode() ? 'Войдите, чтобы добавлять примечания' : 'Примечание (необязательно)'"
+          [disabled]="isDemoMode()"
           maxlength="500" />
+      </div>
+      <div *ngIf="isDemoMode()" class="demo-form-hint">
+        Войдите в систему, чтобы добавлять транзакции
       </div>
     </form>
 
     <!-- Блок подкатегорий -->
-    <div class="subcategories-section">
+    <div class="subcategories-section" [class.demo-disabled]="isDemoMode()">
       <div class="subcategories-header">
         <label class="subcategories-title">Подкатегория (необязательно)</label>
         <span class="subcategories-count" *ngIf="subcategories().length > 0">
@@ -64,6 +79,7 @@
           type="button"
           class="subcategory-tag"
           [class.active]="selectedSubcategoryId === null"
+          [disabled]="isDemoMode()"
           (click)="selectedSubcategoryId = null">
           Без подкатегории
         </button>
@@ -72,6 +88,7 @@
           type="button"
           class="subcategory-tag"
           [class.active]="selectedSubcategoryId === sub.id"
+          [disabled]="isDemoMode()"
           (click)="selectedSubcategoryId = sub.id">
           {{ sub.title }}
         </button>
@@ -79,13 +96,14 @@
           type="button"
           class="subcategory-tag subcategory-tag-create"
           [class.active]="selectedSubcategoryId === '__create_new__'"
+          [disabled]="isDemoMode()"
           (click)="selectedSubcategoryId = '__create_new__'">
           + Создать новую
         </button>
       </div>
 
       <!-- Форма создания новой подкатегории -->
-      <div *ngIf="selectedSubcategoryId === '__create_new__'" class="create-subcategory-form">
+      <div *ngIf="selectedSubcategoryId === '__create_new__' && !isDemoMode()" class="create-subcategory-form">
         <input 
           type="text" 
           [(ngModel)]="newSubcategoryName" 
@@ -135,12 +153,14 @@
             {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | number:'1.2-2' }} ₽
           </div>
           <button 
+            *ngIf="!isDemoMode()"
             class="edit-button"
             (click)="startEdit(t)"
             title="Редактировать транзакцию">
             ✎
           </button>
           <button 
+            *ngIf="!isDemoMode()"
             class="delete-button"
             (click)="deleteTransaction(t.id)"
             title="Удалить транзакцию">

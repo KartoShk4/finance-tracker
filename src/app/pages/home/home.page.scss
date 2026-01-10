@@ -8,6 +8,69 @@
   gap: var(--space-xl);
 }
 
+/* Демо-баннер */
+.demo-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-lg);
+}
+
+.demo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.demo-icon {
+  font-size: 1.5rem;
+}
+
+.demo-text {
+  flex: 1;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  min-width: 200px;
+}
+
+.demo-login-btn {
+  padding: var(--space-sm) var(--space-lg);
+  background-color: white;
+  color: #667eea;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .demo-banner-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  
+  .demo-login-btn {
+    width: 100%;
+  }
+}
+
 .home-period-controls {
   display: flex;
   justify-content: center;
@@ -53,6 +116,23 @@
   padding: var(--space-lg);
   box-shadow: var(--shadow-sm);
   
+  &.demo-disabled {
+    opacity: 0.7;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.02);
+      border-radius: var(--radius-lg);
+      pointer-events: none;
+    }
+  }
+  
   form {
     display: flex;
     flex-direction: column;
@@ -70,6 +150,11 @@
     min-width: 200px;
     padding: var(--space-sm) var(--space-md);
     font-size: 1rem;
+    
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
   }
   
   select {
@@ -77,6 +162,11 @@
     font-size: 1rem;
     min-width: 150px;
     cursor: pointer;
+    
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
   }
   
   button {
@@ -102,6 +192,16 @@
       cursor: not-allowed;
     }
   }
+}
+
+.demo-form-hint {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-secondary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
 }
 
 /* Фильтр по типу категории */

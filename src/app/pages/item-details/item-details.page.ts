@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ItemStore } from '../../features/items/item.store';
 import { TransactionStore } from '../../features/transactions/transaction.store';
 import { SubcategoryStore } from '../../features/subcategories/subcategory.store';
+import { VkAuthService } from '../../core/auth/auth.service';
 import { DateTimePickerComponent } from '../../shared/components/date-time-picker/date-time-picker.component';
 import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 import { ChartComponent } from '../../shared/components/chart/chart.component';
@@ -27,6 +28,10 @@ export class ItemDetailsPage {
   private txStore = inject(TransactionStore);
   private itemStore = inject(ItemStore);
   private subcategoryStore = inject(SubcategoryStore);
+  private authService = inject(VkAuthService);
+
+  /** Флаг демо-режима */
+  isDemoMode = this.itemStore.isDemoMode;
 
   /** ID текущего item из параметров маршрута */
   itemId = this.route.snapshot.paramMap.get('id')!;
@@ -101,10 +106,18 @@ export class ItemDetailsPage {
    * Тип транзакции автоматически берется из категории
    */
   async addTransaction(): Promise<void> {
+    // В демо-режиме запрещаем добавление транзакций
+    if (this.isDemoMode()) {
+      alert('Войдите в систему, чтобы добавлять транзакции');
+      return;
+    }
+
     if (this.amount <= 0) return;
     
     const item = this.currentItem();
     if (!item) return;
+    
+    try {
 
     // Тип транзакции соответствует типу категории
     const type = item.category;
@@ -137,12 +150,15 @@ export class ItemDetailsPage {
     // Обновляем общую сумму item
     await this.itemStore.applyDelta(this.itemId, delta);
     
-    // Сбрасываем форму
-    this.amount = 0;
-    this.transactionDate = new Date().toISOString();
-    this.notes = '';
-    this.selectedSubcategoryId = null;
-    this.newSubcategoryName = '';
+      // Сбрасываем форму
+      this.amount = 0;
+      this.transactionDate = new Date().toISOString();
+      this.notes = '';
+      this.selectedSubcategoryId = null;
+      this.newSubcategoryName = '';
+    } catch (error: any) {
+      alert(error.message || 'Ошибка при добавлении транзакции');
+    }
   }
 
   /**
@@ -158,11 +174,21 @@ export class ItemDetailsPage {
    * @param id - ID транзакции
    */
   async deleteTransaction(id: string): Promise<void> {
-    // Удаляем транзакцию и получаем дельту для отката изменений
-    const delta = await this.txStore.delete(id);
-    
-    // Обновляем общую сумму item (откатываем изменения)
-    await this.itemStore.applyDelta(this.itemId, delta);
+    // В демо-режиме запрещаем удаление транзакций
+    if (this.isDemoMode()) {
+      alert('Войдите в систему, чтобы удалять транзакции');
+      return;
+    }
+
+    try {
+      // Удаляем транзакцию и получаем дельту для отката изменений
+      const delta = await this.txStore.delete(id);
+      
+      // Обновляем общую сумму item (откатываем изменения)
+      await this.itemStore.applyDelta(this.itemId, delta);
+    } catch (error: any) {
+      alert(error.message || 'Ошибка при удалении транзакции');
+    }
   }
 
   /**
@@ -193,6 +219,12 @@ export class ItemDetailsPage {
    * @param id - ID транзакции
    */
   async saveEdit(id: string): Promise<void> {
+    // В демо-режиме запрещаем редактирование транзакций
+    if (this.isDemoMode()) {
+      alert('Войдите в систему, чтобы редактировать транзакции');
+      return;
+    }
+
     if (this.editAmount <= 0) return;
     
     // Убеждаемся, что дата валидна и в формате ISO
@@ -237,9 +269,14 @@ export class ItemDetailsPage {
    * Удаление категории
    */
   async confirmDeleteCategory(): Promise<void> {
-    await this.itemStore.delete(this.itemId);
-    this.showDeleteCategoryModal = false;
-    this.router.navigate(['/']);
+    try {
+      await this.itemStore.delete(this.itemId);
+      this.showDeleteCategoryModal = false;
+      this.router.navigate(['/']);
+    } catch (error: any) {
+      alert(error.message || 'Ошибка при удалении категории');
+      this.showDeleteCategoryModal = false;
+    }
   }
 
   /**
