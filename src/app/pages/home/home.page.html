@@ -131,4 +131,18 @@
       </div>
     </div>
   </div>
+
+  <!-- Модальное окно для сообщения об избранном -->
+  <app-modal
+    [isOpen]="showFavoriteModal()"
+    title="Требуется авторизация"
+    [showCancel]="false"
+    confirmText="Понятно"
+    (confirm)="showFavoriteModal.set(false)"
+    (closeEvent)="showFavoriteModal.set(false)">
+    <p>Войдите в систему, чтобы изменять избранное.</p>
+    <p style="margin-top: var(--space-md); color: var(--color-text-secondary);">
+      Авторизуйтесь через VK, чтобы получить доступ ко всем функциям приложения.
+    </p>
+  </app-modal>
 </div>

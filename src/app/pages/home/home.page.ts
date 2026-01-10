@@ -9,6 +9,7 @@ import { VkAuthService } from '../../core/auth/auth.service';
 import { PieChartComponent } from '../../shared/components/pie-chart/pie-chart.component';
 import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 import { PeriodType } from '../../shared/utils/chart.utils';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 
 /**
  * Компонент главной страницы
@@ -16,7 +17,7 @@ import { PeriodType } from '../../shared/utils/chart.utils';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, PieChartComponent, LocalDatePipe],
+  imports: [CommonModule, FormsModule, DragDropModule, PieChartComponent, LocalDatePipe, ModalComponent],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
@@ -100,6 +101,9 @@ export class HomePage {
   /** Состояние мобильного аккордеона для графика */
   showMobileChart = false;
 
+  /** Состояние модального окна для сообщения об избранном */
+  showFavoriteModal = signal(false);
+
   toggleMobileChart(): void {
     this.showMobileChart = !this.showMobileChart;
   }
@@ -135,9 +139,9 @@ export class HomePage {
   async toggleFavorite(id: string, event: Event): Promise<void> {
     event.stopPropagation();
     
-    // В демо-режиме запрещаем изменение избранного
+    // В демо-режиме показываем модальное окно
     if (this.isDemoMode()) {
-      alert('Войдите в систему, чтобы изменять избранное');
+      this.showFavoriteModal.set(true);
       return;
     }
     
