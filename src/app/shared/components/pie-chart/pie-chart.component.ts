@@ -68,7 +68,27 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
       font-size: 0.875rem;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 480px) {
+      .pie-chart-container {
+        padding: var(--space-md) var(--space-sm);
+      }
+
+      .pie-chart-wrapper {
+        height: 220px;
+      }
+
+      .pie-chart-empty {
+        height: 220px;
+        font-size: 0.8125rem;
+      }
+
+      .pie-chart-title {
+        font-size: 1rem;
+        margin-bottom: var(--space-md);
+      }
+    }
+
+    @media (min-width: 481px) and (max-width: 768px) {
       .pie-chart-container {
         padding: var(--space-md);
       }
@@ -79,6 +99,66 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
 
       .pie-chart-empty {
         height: 250px;
+      }
+    }
+
+    @media (min-width: 1921px) and (max-width: 2560px) {
+      .pie-chart-container {
+        padding: var(--space-xl);
+      }
+
+      .pie-chart-title {
+        font-size: 1.25rem;
+        margin-bottom: var(--space-xl);
+      }
+
+      .pie-chart-wrapper {
+        height: 400px;
+      }
+
+      .pie-chart-empty {
+        height: 400px;
+        font-size: 1rem;
+      }
+    }
+
+    @media (min-width: 2561px) and (max-width: 3840px) {
+      .pie-chart-container {
+        padding: var(--space-2xl);
+      }
+
+      .pie-chart-title {
+        font-size: 1.5rem;
+        margin-bottom: var(--space-xl);
+      }
+
+      .pie-chart-wrapper {
+        height: 500px;
+      }
+
+      .pie-chart-empty {
+        height: 500px;
+        font-size: 1.125rem;
+      }
+    }
+
+    @media (min-width: 3841px) {
+      .pie-chart-container {
+        padding: var(--space-2xl) var(--space-xl);
+      }
+
+      .pie-chart-title {
+        font-size: 1.75rem;
+        margin-bottom: var(--space-2xl);
+      }
+
+      .pie-chart-wrapper {
+        height: 600px;
+      }
+
+      .pie-chart-empty {
+        height: 600px;
+        font-size: 1.25rem;
       }
     }
   `]

@@ -185,9 +185,40 @@ import { CommonModule } from '@angular/common';
       background-color: #dc2626;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 480px) {
       .modal-container {
-        max-width: 100%;
+        max-width: calc(100% - var(--space-md));
+        margin: var(--space-sm);
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: var(--space-md) var(--space-sm);
+      }
+
+      .modal-title {
+        font-size: 1.125rem;
+      }
+
+      .modal-body {
+        font-size: 0.9375rem;
+      }
+
+      .modal-footer {
+        flex-direction: column-reverse;
+        gap: var(--space-sm);
+      }
+
+      .modal-button {
+        width: 100%;
+        font-size: 0.9375rem;
+      }
+    }
+
+    @media (min-width: 481px) and (max-width: 768px) {
+      .modal-container {
+        max-width: calc(100% - var(--space-md));
         margin: var(--space-md);
       }
 
@@ -203,6 +234,87 @@ import { CommonModule } from '@angular/common';
 
       .modal-button {
         width: 100%;
+      }
+    }
+
+    @media (min-width: 1921px) and (max-width: 2560px) {
+      .modal-container {
+        max-width: 600px;
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: var(--space-xl);
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+      }
+
+      .modal-body {
+        font-size: 1.125rem;
+        line-height: 1.7;
+      }
+
+      .modal-button {
+        font-size: 1.125rem;
+        padding: var(--space-md) var(--space-xl);
+        min-width: 120px;
+      }
+    }
+
+    @media (min-width: 2561px) and (max-width: 3840px) {
+      .modal-container {
+        max-width: 700px;
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: var(--space-2xl);
+      }
+
+      .modal-title {
+        font-size: 1.75rem;
+      }
+
+      .modal-body {
+        font-size: 1.25rem;
+        line-height: 1.8;
+      }
+
+      .modal-button {
+        font-size: 1.25rem;
+        padding: var(--space-lg) var(--space-2xl);
+        min-width: 140px;
+      }
+    }
+
+    @media (min-width: 3841px) {
+      .modal-container {
+        max-width: 800px;
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: var(--space-2xl) var(--space-xl);
+      }
+
+      .modal-title {
+        font-size: 2rem;
+      }
+
+      .modal-body {
+        font-size: 1.375rem;
+        line-height: 1.8;
+      }
+
+      .modal-button {
+        font-size: 1.375rem;
+        padding: var(--space-xl) var(--space-2xl);
+        min-width: 160px;
       }
     }
   `]
@@ -265,6 +377,7 @@ export class ModalComponent implements AfterViewInit, OnDestroy {
     }
   }
 }
+
 
 
 

@@ -72,8 +72,47 @@
   font-size: 0.875rem;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+  .chart-container {
+    padding: var(--space-md) var(--space-sm);
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  
+  .chart-controls {
+    width: 100%;
+    justify-content: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .chart-period-button {
+    flex: 1;
+    min-width: 70px;
+    text-align: center;
+    font-size: 0.8125rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+  
+  .chart-wrapper {
+    height: 220px;
+  }
+  
+  .chart-empty {
+    height: 220px;
+    font-size: 0.8125rem;
+  }
+  
+  .chart-title {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
   .chart-container {
     padding: var(--space-md);
   }
@@ -100,6 +139,79 @@
   
   .chart-empty {
     height: 250px;
+  }
+}
+
+/* Адаптивность для больших экранов */
+@media (min-width: 1921px) and (max-width: 2560px) {
+  .chart-container {
+    padding: var(--space-xl);
+  }
+  
+  .chart-title {
+    font-size: 1.25rem;
+  }
+  
+  .chart-period-button {
+    font-size: 1rem;
+    padding: var(--space-sm) var(--space-lg);
+  }
+  
+  .chart-wrapper {
+    height: 400px;
+  }
+  
+  .chart-empty {
+    height: 400px;
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 2561px) and (max-width: 3840px) {
+  .chart-container {
+    padding: var(--space-2xl);
+  }
+  
+  .chart-title {
+    font-size: 1.5rem;
+  }
+  
+  .chart-period-button {
+    font-size: 1.125rem;
+    padding: var(--space-md) var(--space-xl);
+  }
+  
+  .chart-wrapper {
+    height: 500px;
+  }
+  
+  .chart-empty {
+    height: 500px;
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 3841px) {
+  .chart-container {
+    padding: var(--space-2xl) var(--space-xl);
+  }
+  
+  .chart-title {
+    font-size: 1.75rem;
+  }
+  
+  .chart-period-button {
+    font-size: 1.25rem;
+    padding: var(--space-lg) var(--space-2xl);
+  }
+  
+  .chart-wrapper {
+    height: 600px;
+  }
+  
+  .chart-empty {
+    height: 600px;
+    font-size: 1.25rem;
   }
 }
 

@@ -1,6 +1,13 @@
 <div class="app">
   <header class="app-header">
-    <h1>Finance Tracker</h1>
+    <div class="app-logo" (click)="goToHome()" title="Перейти на главную">
+      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>Finance Tracker</h1>
+    </div>
     <nav class="app-nav">
       <a routerLink="/" routerLinkActive="active">Главная</a>
       <a routerLink="/history" routerLinkActive="active">История</a>
@@ -38,6 +45,9 @@
   <main class="app-content">
     <router-outlet />
   </main>
+
+  <!-- Футер -->
+  <app-footer></app-footer>
 
   <!-- FloatingOneTap для неавторизованных пользователей -->
   <app-floating-one-tap *ngIf="!authService.isAuthenticated() && !authService.loading()"></app-floating-one-tap>
