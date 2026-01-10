@@ -2,11 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { App } from './app/app';
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
-
-/**
- * Глобальный обработчик ошибок для фильтрации предупреждений от расширений браузера
- * Эти ошибки не критичны и возникают из-за расширений браузера (DevTools и т.д.)
- */
+import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 window.addEventListener('error', (event: ErrorEvent) => {
   // Фильтруем ошибки от расширений браузера (runtime.lastError)
   const errorMessage = event.message || '';
@@ -30,11 +26,11 @@ window.addEventListener('error', (event: ErrorEvent) => {
 window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
   // Фильтруем ошибки от расширений браузера
   const reason = event.reason;
-  const errorMessage = 
+  const errorMessage =
     (typeof reason === 'string' ? reason : '') ||
     (reason?.message || '') ||
     (reason?.toString?.() || '');
-    
+
   if (
     errorMessage.includes('runtime.lastError') ||
     errorMessage.includes('message port closed') ||
@@ -52,7 +48,11 @@ window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => 
  * Инициализирует Angular приложение с маршрутизацией
  */
 bootstrapApplication(App, {
-  providers: [provideRouter(routes)]
+  providers: [
+    provideRouter(routes),
+    // Hash-роутинг для GitHub Pages
+    { provide: LocationStrategy, useClass: HashLocationStrategy },
+  ],
 }).catch((error) => {
   console.error('Ошибка при запуске приложения:', error);
 });

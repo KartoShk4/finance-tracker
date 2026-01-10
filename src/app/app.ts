@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './core/auth/auth.service';
+import { VkLoginComponent } from './shared/components/vk-login/vk-login.components';
+import { VkAuthService } from './core/auth/auth.service';
 
 /**
  * Корневой компонент приложения
@@ -10,25 +11,16 @@ import { AuthService } from './core/auth/auth.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, VkLoginComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
-  authService = inject(AuthService);
-
-  async signInWithVK(): Promise<void> {
-    try {
-      await this.authService.signInWithVK();
-    } catch (error: any) {
-      console.error('Error signing in:', error);
-      alert(error.message || 'Ошибка при входе через ВКонтакте. Убедитесь, что VK App ID настроен в environment.ts');
-    }
-  }
+  authService = inject(VkAuthService);
 
   async signOut(): Promise<void> {
     try {
-      await this.authService.signOut();
+      this.authService.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
     }

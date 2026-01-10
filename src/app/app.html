@@ -11,21 +11,13 @@
       </div>
       <div *ngIf="!authService.loading()">
         <div *ngIf="!authService.isAuthenticated()" class="auth-actions">
-          <button 
-            class="auth-button auth-button-vk"
-            (click)="signInWithVK()"
-            title="Войти через ВКонтакте">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.785 15.639c3.521 0 5.54-.996 5.558-2.73 0-1.02-.785-1.588-2.342-1.864l-3.549-.785c-1.177-.26-1.706-.638-1.706-1.197 0-.638.638-1.02 1.785-1.02 1.432 0 2.234.343 2.342 1.02l2.234-1.353c-.294-1.02-1.432-1.667-3.177-1.785V6.639h-2.234v1.197c-1.706.294-3.059 1.275-3.177 2.73 0 1.667 1.275 2.441 3.177 2.73l3.177.706c1.432.314 2.049.706 2.049 1.314 0 .706-.706 1.177-2.049 1.177-1.706 0-2.637-.47-2.785-1.177l-2.234 1.353c.392 1.432 1.863 2.343 4.177 2.637v1.197h2.234v-1.197z"/>
-            </svg>
-            Войти через ВК
-          </button>
+          <app-vk-login></app-vk-login>
         </div>
         <div *ngIf="authService.isAuthenticated()" class="auth-user">
           <span class="auth-user-name">
             {{ authService.user()?.firstName }} {{ authService.user()?.lastName }}
           </span>
-          <button 
+          <button
             class="auth-button auth-button-out"
             (click)="signOut()"
             title="Выйти">
