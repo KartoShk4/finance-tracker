@@ -104,6 +104,24 @@ export class HomePage {
   /** Состояние модального окна для сообщения об избранном */
   showFavoriteModal = signal(false);
 
+  /** Состояние модального окна для сообщения о лимите в демо-режиме */
+  showDemoLimitModal = signal(false);
+
+  /** Количество созданных пользовательских категорий */
+  userItemsCount = computed(() => {
+    if (!this.isDemoMode()) return 0;
+    return this.itemStore.items().filter(item => !item.id.startsWith('demo-')).length;
+  });
+
+  /** Максимальное количество категорий в демо-режиме */
+  readonly DEMO_LIMIT = 2;
+
+  /** Можно ли создавать категории в демо-режиме */
+  canCreateInDemo = computed(() => {
+    if (!this.isDemoMode()) return true;
+    return this.userItemsCount() < this.DEMO_LIMIT;
+  });
+
   toggleMobileChart(): void {
     this.showMobileChart = !this.showMobileChart;
   }
@@ -114,11 +132,26 @@ export class HomePage {
   async add(): Promise<void> {
     if (!this.title.trim()) return;
     
+    // В демо-режиме проверяем лимит перед попыткой создания
+    if (this.isDemoMode() && !this.canCreateInDemo()) {
+      this.showDemoLimitModal.set(true);
+      return;
+    }
+    
     try {
       await this.itemStore.create(this.title.trim(), this.category);
       this.title = '';
+      
+      // Если после создания достигнут лимит, показываем модальное окно
+      if (this.isDemoMode() && !this.canCreateInDemo()) {
+        this.showDemoLimitModal.set(true);
+      }
     } catch (error: any) {
-      alert(error.message || 'Ошибка при создании категории. Войдите в систему, чтобы создавать категории.');
+      if (error.message === 'DEMO_LIMIT_REACHED') {
+        this.showDemoLimitModal.set(true);
+      } else {
+        alert(error.message || 'Ошибка при создании категории. Войдите в систему, чтобы создавать категории.');
+      }
     }
   }
 

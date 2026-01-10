@@ -73,15 +73,19 @@ export class ItemStore {
       
       // Если демо-режим, проверяем версию демо-данных
       if (this.isDemoMode()) {
-        const hasDemoData = data.length > 0 && data.some(item => item.id.startsWith('demo-'));
-        const hasNewDemoData = data.length > 0 && data.some(item => item.id === 'demo-7' || item.id === 'demo-8');
+        const demoItems = data.filter(item => item.id.startsWith('demo-'));
+        const userItems = data.filter(item => !item.id.startsWith('demo-'));
+        const hasNewDemoData = demoItems.length > 0 && demoItems.some(item => item.id === 'demo-7' || item.id === 'demo-8');
         
-        // Если нет данных или есть старые демо-данные (без demo-7 и demo-8), загружаем новые
-        if (data.length === 0 || (hasDemoData && !hasNewDemoData)) {
+        // Если нет демо-данных или есть старые демо-данные (без demo-7 и demo-8), загружаем новые
+        if (demoItems.length === 0 || (demoItems.length > 0 && !hasNewDemoData)) {
           console.log('Обнаружены старые демо-данные, обновляю...');
-          // Очищаем старые данные перед загрузкой новых
-          await this.localRepo.clear();
+          // Загружаем новые демо-данные и сохраняем вместе с пользовательскими
           await this.loadDemoData();
+          const newDemoItems = await this.localRepo.getAll();
+          const combined = [...newDemoItems.filter(item => item.id.startsWith('demo-')), ...userItems];
+          await this.localRepo.save(combined);
+          this._items.set(combined);
           return;
         }
       }
@@ -98,9 +102,15 @@ export class ItemStore {
 
   /**
    * Загрузка демо-данных для неавторизованных пользователей
+   * Сохраняет существующие пользовательские категории
    */
   private async loadDemoData(): Promise<void> {
     console.log('Загрузка новых демо-данных категорий...');
+    
+    // Получаем существующие данные (включая пользовательские категории)
+    const existingData = await this.localRepo.getAll();
+    const existingUserItems = existingData.filter(item => !item.id.startsWith('demo-'));
+    
     const now = new Date();
     const demoItems: Item[] = [
       {
@@ -172,21 +182,46 @@ export class ItemStore {
       }
     ];
     
+    // Объединяем демо-данные с пользовательскими категориями
+    // Пользовательские категории должны быть после демо-категорий
+    const combinedItems = [...demoItems, ...existingUserItems];
+    
     // Сохраняем и обновляем состояние
-    await this.repo.save(demoItems);
-    this._items.set(demoItems);
-    console.log('Демо-данные категорий загружены:', demoItems.length, 'категорий');
+    await this.repo.save(combinedItems);
+    this._items.set(combinedItems);
+    console.log('Демо-данные категорий загружены:', demoItems.length, 'демо-категорий,', existingUserItems.length, 'пользовательских категорий');
+  }
+
+  /**
+   * Получение количества пользовательских категорий (не демо)
+   */
+  private getUserItemsCount(): number {
+    return this._items().filter(item => !item.id.startsWith('demo-')).length;
+  }
+
+  /**
+   * Проверка возможности создания категории в демо-режиме
+   * @returns true, если можно создать, false - если достигнут лимит
+   */
+  canCreateInDemoMode(): boolean {
+    if (!this.isDemoMode()) {
+      return true; // В обычном режиме можно создавать без ограничений
+    }
+    return this.getUserItemsCount() < 2;
   }
 
   /**
    * Создание новой категории
    * @param title - название категории
    * @param category - тип категории (доход/расход)
+   * @throws Error если в демо-режиме достигнут лимит созданных категорий
    */
   async create(title: string, category: 'income' | 'expense'): Promise<void> {
-    // В демо-режиме запрещаем создание новых категорий
+    // В демо-режиме проверяем лимит на создание категорий
     if (this.isDemoMode()) {
-      throw new Error('Войдите в систему, чтобы создавать категории');
+      if (!this.canCreateInDemoMode()) {
+        throw new Error('DEMO_LIMIT_REACHED');
+      }
     }
 
     const item: Item = {
@@ -240,15 +275,18 @@ export class ItemStore {
    * @param id - ID категории
    */
   async delete(id: string): Promise<void> {
-    // В демо-режиме запрещаем удаление категорий
-    if (this.isDemoMode()) {
-      throw new Error('Войдите в систему, чтобы удалять категории');
-    }
-
     const item = this._items().find(i => i.id === id);
     if (!item) return;
 
-    // Добавляем запись в историю перед удалением
+    // В демо-режиме разрешаем удаление только пользовательских категорий (не демо)
+    if (this.isDemoMode()) {
+      if (item.id.startsWith('demo-')) {
+        throw new Error('Демо-категории нельзя удалить. Войдите в систему, чтобы создавать и удалять свои категории.');
+      }
+      // Разрешаем удаление пользовательских категорий в демо-режиме
+    }
+
+    // Добавляем запись в историю перед удалением (только для авторизованных пользователей)
     if (!this.isDemoMode()) {
       this.historyStore.addEntry({
         action: 'deleted',

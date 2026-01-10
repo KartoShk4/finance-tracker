@@ -4,32 +4,37 @@
     <div class="demo-banner-content">
       <span class="demo-icon">🎭</span>
       <span class="demo-text">Демо-режим: вы видите пример данных. Войдите в систему, чтобы создавать и сохранять свои категории.</span>
-      <button class="demo-login-btn" (click)="scrollToTop()">Войти</button>
     </div>
   </div>
 
   <div class="home-layout">
     <div class="home-content">
       <!-- Форма добавления нового item -->
-      <div class="home-form" [class.demo-disabled]="isDemoMode()">
+      <div class="home-form" [class.demo-disabled]="isDemoMode() && !canCreateInDemo()">
         <form (submit)="add(); $event.preventDefault()">
           <div class="form-row">
-            <input 
-              type="text" 
-              [(ngModel)]="title" 
-              name="title" 
-              [placeholder]="isDemoMode() ? 'Войдите, чтобы создавать категории' : 'Название категории'"
-              [disabled]="isDemoMode()"
+            <input
+              type="text"
+              [(ngModel)]="title"
+              name="title"
+              [placeholder]="isDemoMode() && !canCreateInDemo() ? 'Лимит достигнут. Войдите для создания' : (isDemoMode() ? `Демо: можно создать ${DEMO_LIMIT - userItemsCount()} категори${DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и'}` : 'Название категории')"
+              [disabled]="isDemoMode() && !canCreateInDemo()"
               required />
-            <select [(ngModel)]="category" name="category" [disabled]="isDemoMode()">
+            <select [(ngModel)]="category" name="category" [disabled]="isDemoMode() && !canCreateInDemo()">
               <option value="income">Доход</option>
               <option value="expense">Расход</option>
             </select>
-            <button type="submit" [disabled]="isDemoMode()">Добавить</button>
+            <button type="submit" [disabled]="isDemoMode() && !canCreateInDemo()">Добавить</button>
           </div>
         </form>
         <div *ngIf="isDemoMode()" class="demo-form-hint">
-          Войдите в систему, чтобы создавать свои категории
+          <span *ngIf="canCreateInDemo()">
+            🎭 Демо-режим: вы можете создать {{ DEMO_LIMIT - userItemsCount() }} категори{{ DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и' }} для теста.
+            <strong>Войдите в систему</strong>, чтобы создавать неограниченное количество категорий.
+          </span>
+          <span *ngIf="!canCreateInDemo()">
+            Достигнут лимит демо-режима ({{ DEMO_LIMIT }} категории). Войдите в систему, чтобы создавать неограниченное количество категорий.
+          </span>
         </div>
       </div>
 
@@ -57,13 +62,13 @@
 
       <!-- Список items -->
       <div class="items-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
-        <div 
+        <div
           *ngFor="let item of items(); trackBy: trackByItemId"
           class="items-item"
           [class.favorite]="item.isFavorite"
           cdkDrag>
           <div class="items-item-content" (click)="open(item.id)">
-            <button 
+            <button
               class="favorite-button"
               [class.active]="item.isFavorite"
               (click)="toggleFavorite(item.id, $event)"
@@ -80,7 +85,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Пустое состояние -->
         <div *ngIf="items().length === 0" class="items-empty">
           <p>Нет категорий. Создайте первую категорию для отслеживания финансов.</p>
@@ -144,5 +149,31 @@
     <p style="margin-top: var(--space-md); color: var(--color-text-secondary);">
       Авторизуйтесь через VK, чтобы получить доступ ко всем функциям приложения.
     </p>
+  </app-modal>
+
+  <!-- Модальное окно для сообщения о лимите в демо-режиме -->
+  <app-modal
+    [isOpen]="showDemoLimitModal()"
+    title="Лимит демо-режима достигнут"
+    [showCancel]="false"
+    confirmText="Войти в систему"
+    [confirmDanger]="false"
+    (confirm)="scrollToTop(); showDemoLimitModal.set(false)"
+    (closeEvent)="showDemoLimitModal.set(false)">
+    <p>
+      В демо-режиме вы можете создать только <strong>{{ DEMO_LIMIT }} категории</strong> для тестирования функционала.
+    </p>
+    <p style="margin-top: var(--space-md); color: var(--color-text-secondary);">
+      Вы успешно создали {{ userItemsCount() }} категори{{ userItemsCount() === 1 ? 'ю' : 'и' }} и увидели, как работает приложение.
+    </p>
+    <p style="margin-top: var(--space-md); color: var(--color-text-primary); font-weight: 500;">
+      🔐 <strong>Авторизуйтесь через VK</strong>, чтобы получить полный доступ ко всем функциям:
+    </p>
+    <ul style="margin-top: var(--space-sm); padding-left: var(--space-lg); color: var(--color-text-secondary);">
+      <li>Неограниченное создание категорий</li>
+      <li>Сохранение данных на сервере</li>
+      <li>Доступ с любого устройства</li>
+      <li>Полная история изменений</li>
+    </ul>
   </app-modal>
 </div>
