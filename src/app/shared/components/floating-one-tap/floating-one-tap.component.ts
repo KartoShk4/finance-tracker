@@ -4,7 +4,7 @@ import { VkAuthService } from '../../../core/auth/auth.service';
 import { environment } from '../../../../environments/environment';
 
 declare global {
-  interface Window { 
+  interface Window {
     VKIDSDK?: any;
   }
 }
@@ -91,7 +91,7 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
       // Инициализация конфигурации (используем ту же, что и в обычном OneTap)
       const redirectUrl = environment.vkRedirectUrl || window.location.origin;
       let finalRedirectUrl = redirectUrl;
-      
+
       // Убираем завершающий слеш
       if (finalRedirectUrl.length > 1 && finalRedirectUrl.endsWith('/')) {
         finalRedirectUrl = finalRedirectUrl.slice(0, -1);
@@ -129,12 +129,10 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
         console.error('FloatingOneTap error:', error);
       })
       .on(VKID.FloatingOneTapInternalEvents?.LOGIN_SUCCESS || 'login_success', (payload: any) => {
-        console.log('FloatingOneTap LOGIN_SUCCESS:', payload);
         const code = payload.code;
         const deviceId = payload.device_id;
 
         if (!code) {
-          console.error('Код авторизации не получен из payload');
           return;
         }
 
@@ -146,10 +144,9 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
               if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
                 const lastError = chrome.runtime.lastError.message;
                 if (lastError && !lastError.includes('message port closed')) {
-                  console.warn('Chrome runtime error (ignored):', lastError);
                 }
               }
-              
+
               console.log('FloatingOneTap auth success:', tokenData);
               // Закрываем FloatingOneTap после успешной авторизации
               if (this.floatingOneTap) {
@@ -171,24 +168,17 @@ export class FloatingOneTapComponent implements AfterViewInit, OnDestroy {
                 errorMessage.includes('Extension context invalidated') ||
                 errorMessage.includes('The message port closed before a response was received')
               ) {
-                // Это ошибка расширения, не критическая - продолжаем работу
-                console.warn('Игнорируем ошибку расширения браузера:', errorMessage);
-                // Пробуем передать payload напрямую, возможно токен уже есть
                 this.auth.handleLoginSuccess(payload);
                 return;
               }
-              
-              console.error('FloatingOneTap exchange code error:', error);
             });
         } else {
-          console.error('VKID.Auth.exchangeCode не доступен');
           // Передаем payload напрямую, возможно токен уже есть
           this.auth.handleLoginSuccess(payload);
         }
       });
 
       this.isRendered = true;
-      console.log('✅ FloatingOneTap отрендерен');
 
     } catch (error: any) {
       console.error('Ошибка инициализации FloatingOneTap:', error);

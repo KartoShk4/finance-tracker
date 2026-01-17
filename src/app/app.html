@@ -14,32 +14,44 @@
       <a routerLink="/faq" routerLinkActive="active">FAQ</a>
       <a routerLink="/about" routerLinkActive="active">О нас</a>
       <div class="app-auth">
-        <div *ngIf="authService.loading()" class="auth-loading">
-          Загрузка...
-        </div>
-        <div *ngIf="!authService.loading()">
-          <div *ngIf="!authService.isAuthenticated()" class="auth-actions">
-            <app-vk-login></app-vk-login>
+        @if (authService.loading()) {
+          <div class="auth-loading">
+            Загрузка...
           </div>
-          <div *ngIf="authService.isAuthenticated()" class="auth-user">
-            <div class="auth-user-info">
-              <img
-                *ngIf="authService.user()?.photo"
-                [src]="authService.user()?.photo"
-                [alt]="authService.user()?.firstName"
-                class="auth-user-photo" />
-              <span class="auth-user-name">
+        }
+
+        @if (!authService.loading()) {
+          <div>
+            @if (!authService.isAuthenticated()) {
+              <div class="auth-actions">
+                <app-vk-login></app-vk-login>
+              </div>
+            }
+            @if (authService.isAuthenticated()) {
+              <div class="auth-user">
+                <div class="auth-user-info">
+                  @if (authService.user()?.photo) {
+                    <img
+                      [src]="authService.user()?.photo"
+                      [alt]="authService.user()?.firstName"
+                      class="auth-user-photo" />
+                  }
+
+                  <span class="auth-user-name">
               {{ authService.user()?.firstName }} {{ authService.user()?.lastName }}
             </span>
-            </div>
-            <button
-              class="auth-button auth-button-out"
-              (click)="signOut()"
-              title="Выйти">
-              Выйти
-            </button>
+                </div>
+                <button
+                  class="auth-button auth-button-out"
+                  (click)="signOut()"
+                  title="Выйти">
+                  Выйти
+                </button>
+              </div>
+            }
           </div>
-        </div>
+        }
+
       </div>
     </nav>
   </header>
@@ -52,7 +64,9 @@
   <app-footer></app-footer>
 
   <!-- FloatingOneTap для неавторизованных пользователей -->
-  <app-floating-one-tap *ngIf="!authService.isAuthenticated() && !authService.loading()"></app-floating-one-tap>
+  @if (!authService.isAuthenticated() && !authService.loading()) {
+    <app-floating-one-tap></app-floating-one-tap>
+  }
 
   <!-- Snackbar для уведомлений -->
   <app-snackbar></app-snackbar>

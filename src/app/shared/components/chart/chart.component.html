@@ -3,13 +3,14 @@
   <div class="chart-header">
     <h3 class="chart-title">График транзакций</h3>
     <div class="chart-controls">
-      <button
-        *ngFor="let p of periods"
-        class="chart-period-button"
-        [class.active]="period === p.value"
-        (click)="onPeriodChange(p.value)">
-        {{ p.label }}
-      </button>
+      @for (p of periods; track p) {
+        <button class="chart-period-button"
+          [class.active]="period === p.value"
+          (click)="onPeriodChange(p.value)">
+          {{ p.label }}
+        </button>
+      }
+
     </div>
   </div>
 
@@ -17,7 +18,9 @@
   <div class="chart-wrapper" [class.hidden]="!hasData">
     <canvas #canvas></canvas>
   </div>
-  <div *ngIf="!hasData" class="chart-empty">
-    Нет данных для отображения
-  </div>
+  @if (!hasData) {
+    <div class="chart-empty">
+      Нет данных для отображения
+    </div>
+  }
 </div>

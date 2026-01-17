@@ -1,0 +1,18 @@
+<div
+  *ngIf="isVisible()"
+  class="snackbar"
+  [class.success]="type() === 'success'"
+  [class.error]="type() === 'error'"
+  [class.info]="type() === 'info'"
+  [class.warning]="type() === 'warning'">
+  <span class="snackbar-icon">{{ getIcon() }}</span>
+  <span class="snackbar-message">{{ message() }}</span>
+  @if (showClose()) {
+    <button
+      class="snackbar-close"
+      (click)="close()"
+      aria-label="Закрыть">
+      ×
+    </button>
+  }
+</div>

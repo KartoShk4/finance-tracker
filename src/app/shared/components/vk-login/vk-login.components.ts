@@ -4,7 +4,7 @@ import { VkAuthService } from '../../../core/auth/auth.service';
 import { environment } from '../../../../environments/environment';
 
 declare global {
-  interface Window { 
+  interface Window {
     VKIDSDK?: any;
   }
 }
@@ -46,7 +46,7 @@ export class VkLoginComponent implements AfterViewInit {
           }, 200);
         }
       }, 100);
-      
+
       // Таймаут на случай, если скрипт не загрузится
       setTimeout(() => {
         clearInterval(checkSDK);
@@ -89,14 +89,14 @@ export class VkLoginComponent implements AfterViewInit {
     try {
       // Получаем контейнер - сначала пробуем ViewChild, затем через ElementRef
       let container = null;
-      
+
       if (this.vkContainer?.nativeElement) {
         container = this.vkContainer.nativeElement;
       } else {
         // Fallback: ищем div в корневом элементе компонента
         container = this.el.nativeElement.querySelector('div');
       }
-      
+
       if (!container) {
         console.error('Контейнер для VK OneTap не найден');
         console.error('ElementRef:', this.el.nativeElement);
@@ -113,16 +113,16 @@ export class VkLoginComponent implements AfterViewInit {
       // ВАЖНО: redirectUrl должен точно совпадать с "Доверенный redirect URI" в настройках приложения VK
       const currentOrigin = window.location.origin;
       const currentPathname = window.location.pathname;
-      
+
       // Для GitHub Pages нужно учитывать базовый путь (base href)
-      // Если приложение размещено в подпапке (например, /finance-tracker/), 
+      // Если приложение размещено в подпапке (например, /finance-tracker/),
       // то redirectUrl может включать этот путь
       // Но обычно VK принимает redirectUrl без пути, только origin + базовый путь
       let redirectUrl = environment.vkRedirectUrl || '';
-      
+
       // Очищаем URL от пробелов и лишних символов
       redirectUrl = redirectUrl.trim();
-      
+
       // Если redirectUrl не указан в environment, используем текущий origin + базовый путь
       if (!redirectUrl) {
         // Определяем базовый путь из base href или pathname
@@ -130,62 +130,38 @@ export class VkLoginComponent implements AfterViewInit {
         const basePath = baseHref !== '/' ? baseHref.replace(/\/$/, '') : '';
         redirectUrl = currentOrigin + basePath;
       }
-      
-      // Убеждаемся, что redirectUrl не имеет завершающего слеша
-      // VK обычно требует URL без завершающего слеша
-      // Важно: убираем слеш ТОЛЬКО если это не корневой URL (не просто "/")
+
       if (redirectUrl.length > 1 && redirectUrl.endsWith('/')) {
         redirectUrl = redirectUrl.slice(0, -1);
       }
-      
-      // Проверяем соответствие текущего URL с redirectUrl
-      // Для GitHub Pages это нормально, что redirectUrl включает путь (/finance-tracker)
-      // а origin - это только домен (https://kartoshk4.github.io)
+
       const isGitHubPages = currentOrigin.includes('github.io') && redirectUrl.includes(currentOrigin);
       if (currentOrigin !== redirectUrl && environment.vkRedirectUrl && environment.vkRedirectUrl !== currentOrigin && !isGitHubPages) {
-        console.warn(`⚠️ ВНИМАНИЕ: redirectUrl из environment (${environment.vkRedirectUrl}) не совпадает с текущим origin (${currentOrigin})`);
-        console.warn('Это может вызвать ошибку "redirect_uri is missing or invalid"');
-        console.warn('Убедитесь, что в настройках приложения VK указан правильный redirect URI');
-        console.warn('Рекомендация: используйте текущий origin как redirectUrl или обновите настройки приложения VK');
       }
-      
-      console.log('=== VK ID SDK Configuration ===');
-      console.log('Current origin:', currentOrigin);
-      console.log('Current full URL:', window.location.href);
-      console.log('Environment redirectUrl:', environment.vkRedirectUrl);
-      console.log('Final redirectUrl:', redirectUrl);
-      console.log('VK App ID:', environment.vkAppId);
-      console.log('================================');
-      
+
       try {
-        // Для VK ID SDK OneTap нужен redirectUrl, который точно соответствует настройкам приложения
-        // В настройках приложения VK в разделе "Доверенный redirect URI" должен быть указан тот же URL
-        // Для responseMode.Callback redirectUrl используется при обмене кода на токен
         const config: any = {
           app: Number(environment.vkAppId),
-          redirectUrl: redirectUrl, // КРИТИЧЕСКИ ВАЖНО: должен точно совпадать с "Доверенный redirect URI" в настройках приложения VK
+          redirectUrl: redirectUrl,
         };
 
-        // Добавляем опциональные параметры, если они доступны
-        // responseMode.Callback означает, что после авторизации будет получен code, который нужно обменять на токен
         if (VKID.ConfigResponseMode && VKID.ConfigResponseMode.Callback) {
           config.responseMode = VKID.ConfigResponseMode.Callback;
         } else {
           // Если ConfigResponseMode не доступен, пробуем строковое значение
           config.responseMode = 'callback';
         }
-        
+
         if (VKID.ConfigSource && VKID.ConfigSource.LOWCODE) {
           config.source = VKID.ConfigSource.LOWCODE;
         } else {
           // Если ConfigSource не доступен, пробуем строковое значение
           config.source = 'lowcode';
         }
-        
+
         config.scope = ''; // Заполните нужными доступами по необходимости (email, phone и т.д.)
 
         VKID.Config.init(config);
-        console.log('✅ VKID Config инициализирован успешно');
       } catch (configError: any) {
         console.error('❌ Ошибка инициализации Config:', configError);
         console.error('Детали ошибки:', {
@@ -193,7 +169,7 @@ export class VkLoginComponent implements AfterViewInit {
           code: configError.code,
           redirectUrl: redirectUrl
         });
-        
+
         // Показываем более информативное сообщение об ошибке
         const errorMsg = configError.message || JSON.stringify(configError);
         if (errorMsg.includes('redirect_uri') || errorMsg.includes('redirect')) {
@@ -232,12 +208,7 @@ export class VkLoginComponent implements AfterViewInit {
             // Не показываем ошибку пользователю, так как это его действие
             return;
           }
-          
-          // Для других ошибок показываем подробную информацию
-          console.error('❌ VKID error:', error);
-          console.error('Код ошибки:', error?.code);
-          console.error('Текст ошибки:', error?.text || error?.message);
-          
+
           // Показываем alert только для критических ошибок (не для закрытия окна)
           if (error?.code !== 2) {
             const errorMessage = error?.text || error?.message || JSON.stringify(error);
@@ -268,7 +239,7 @@ export class VkLoginComponent implements AfterViewInit {
                     console.warn('Chrome runtime error (ignored):', lastError);
                   }
                 }
-                
+
                 console.log('VKID auth success:', tokenData);
                 // Передаем данные в сервис для обработки
                 this.auth.handleLoginSuccess({
@@ -292,7 +263,7 @@ export class VkLoginComponent implements AfterViewInit {
                   this.auth.handleLoginSuccess(payload);
                   return;
                 }
-                
+
                 console.error('VKID exchange code error:', error);
                 alert('Ошибка при обмене кода на токен: ' + (error.message || error));
               });
@@ -302,7 +273,7 @@ export class VkLoginComponent implements AfterViewInit {
             this.auth.handleLoginSuccess(payload);
           }
         });
-        
+
         console.log('OneTap виджет отрендерен');
       } catch (renderError) {
         console.error('Ошибка рендеринга OneTap:', renderError);

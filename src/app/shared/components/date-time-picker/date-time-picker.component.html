@@ -1,0 +1,17 @@
+<div class="date-time-picker">
+  <input
+    #dateInput
+    type="text"
+    class="date-time-input"
+    [placeholder]="placeholder"
+    autocomplete="off"
+    [value]="displayValue"
+  />
+  <button
+    type="button"
+    class="now-button"
+    (click)="setNow()"
+    title="Установить текущее время">
+    Сейчас
+  </button>
+</div>

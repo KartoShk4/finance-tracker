@@ -1,0 +1,47 @@
+<div
+  class="modal-overlay"
+  [class.show]="isOpen"
+  (click)="onOverlayClick($event)"
+  #overlay>
+  <div
+    class="modal-container"
+    (click)="$event.stopPropagation()"
+    #container>
+    @if (title) {
+      <div class="modal-header">
+        <h3 class="modal-title">{{ title }}</h3>
+        <button
+          class="modal-close"
+          (click)="close()"
+          type="button"
+          title="Закрыть">
+          ×
+        </button>
+      </div>
+    }
+    <div class="modal-body">
+      <ng-content></ng-content>
+    </div>
+    @if (showFooter) {
+      <div class="modal-footer">
+        @if (showCancel) {
+          <button
+            class="modal-button modal-button-cancel"
+            (click)="onCancel()"
+            type="button">
+            {{ cancelText }}
+          </button>
+        }
+        @if (showConfirm) {
+          <button
+            class="modal-button modal-button-confirm"
+            (click)="onConfirm()"
+            type="button"
+            [class.danger]="confirmDanger">
+            {{ confirmText }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

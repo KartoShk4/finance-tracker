@@ -22,80 +22,8 @@ import AirDatepicker from 'air-datepicker';
   standalone: true,
   imports: [CommonModule, FormsModule],
   selector: 'app-date-time-picker',
-  template: `
-    <div class="date-time-picker">
-      <input
-        #dateInput
-        type="text"
-        class="date-time-input"
-        [placeholder]="placeholder"
-        autocomplete="off"
-        [value]="displayValue"
-      />
-      <button
-        type="button"
-        class="now-button"
-        (click)="setNow()"
-        title="Установить текущее время">
-        Сейчас
-      </button>
-    </div>
-  `,
-  styles: [`
-    .date-time-picker {
-      display: flex;
-      gap: var(--space-sm);
-      align-items: center;
-      flex: 1;
-      min-width: 220px;
-    }
-
-    .date-time-input {
-      flex: 1;
-      padding: var(--space-sm) var(--space-md);
-      font-size: 0.95rem;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      background-color: var(--color-bg-card);
-      color: var(--color-text-primary);
-      transition: all var(--transition-fast);
-    }
-
-    .date-time-input:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
-    }
-
-    .now-button {
-      padding: var(--space-sm) var(--space-md);
-      font-size: 0.875rem;
-      background-color: var(--color-bg-secondary);
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      white-space: nowrap;
-    }
-
-    .now-button:hover {
-      background-color: var(--color-bg-tertiary);
-      border-color: var(--color-border-hover);
-      color: var(--color-text-primary);
-    }
-
-    @media (max-width: 768px) {
-      .date-time-picker {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .now-button {
-        width: 100%;
-      }
-    }
-  `],
+  templateUrl: './date-time-picker.component.html',
+  styleUrl: "./date-time-picker.component.scss",
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -134,10 +62,9 @@ export class DateTimePickerComponent implements ControlValueAccessor, AfterViewI
   private initPicker(): void {
     if (!this.dateInput?.nativeElement) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.picker = new AirDatepicker(this.dateInput.nativeElement, {
       timepicker: true,
-      isMobile: false,
+      isMobile: true,
       autoClose: true,
       dateFormat: 'dd.MM.yyyy',
       timeFormat: 'HH:mm',
@@ -160,7 +87,7 @@ export class DateTimePickerComponent implements ControlValueAccessor, AfterViewI
         this.setValue(iso, true);
       }
     });
-    
+
     // Устанавливаем начальное значение в поле ввода
     if (this._value) {
       const date = new Date(this._value);

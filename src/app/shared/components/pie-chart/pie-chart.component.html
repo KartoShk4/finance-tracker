@@ -1,0 +1,12 @@
+<div class="pie-chart-container">
+  <h3 class="pie-chart-title">Общая статистика</h3>
+  <div class="pie-chart-wrapper" [class.hidden]="!hasData">
+    <canvas #canvas></canvas>
+  </div>
+  @if (!hasData) {
+    <div class="pie-chart-empty">
+      Нет данных для отображения
+    </div>
+  }
+
+</div>
