@@ -1,11 +1,11 @@
-import { Component, inject } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import {Component, inject} from '@angular/core';
+import { RouterOutlet} from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { VkLoginComponent } from './shared/components/vk-login/vk-login.components';
 import { FloatingOneTapComponent } from './shared/components/floating-one-tap/floating-one-tap.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { SnackbarComponent } from './shared/components/snackbar/snackbar.component';
-import { VkAuthService } from './core/auth/auth.service';
+import {HeaderComponent} from './shared/components/header/header.component';
+import {VkAuthService} from './core/auth/auth.service';
 
 /**
  * Корневой компонент приложения
@@ -15,12 +15,10 @@ import { VkAuthService } from './core/auth/auth.service';
   selector: 'app-root',
   standalone: true,
   imports: [
-    RouterOutlet, 
-    RouterLink, 
-    RouterLinkActive, 
-    CommonModule, 
-    VkLoginComponent,
+    RouterOutlet,
+    CommonModule,
     FloatingOneTapComponent,
+    HeaderComponent,
     FooterComponent,
     SnackbarComponent
   ],
@@ -28,19 +26,6 @@ import { VkAuthService } from './core/auth/auth.service';
   styleUrl: './app.scss',
 })
 export class App {
+
   authService = inject(VkAuthService);
-  router = inject(Router);
-
-  async signOut(): Promise<void> {
-    try {
-      this.authService.signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  }
-
-  goToHome(): void {
-    this.router.navigate(['/']);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 }

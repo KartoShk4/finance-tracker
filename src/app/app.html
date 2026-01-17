@@ -1,48 +1,6 @@
 <div class="app">
-  <header class="app-header">
-    <div class="app-logo" (click)="goToHome()" title="Перейти на главную">
-      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <h1>Finance Tracker</h1>
-    </div>
-    <nav class="app-nav">
-      <a routerLink="/" routerLinkActive="active">Главная</a>
-      <a routerLink="/history" routerLinkActive="active">История</a>
-      <a routerLink="/faq" routerLinkActive="active">FAQ</a>
-      <a routerLink="/about" routerLinkActive="active">О нас</a>
-      <div class="app-auth">
-        @if (authService.loading()) {
-          <div class="auth-loading">
-            Загрузка...
-          </div>
-        }
-
-        @if (!authService.loading()) {
-          <div>
-            @if (!authService.isAuthenticated()) {
-              <div class="auth-actions">
-                <app-vk-login></app-vk-login>
-              </div>
-            }
-            @if (authService.isAuthenticated()) {
-              <div class="auth-user">
-                <button
-                  class="auth-button auth-button-out"
-                  (click)="signOut()"
-                  title="Выйти">
-                  Выйти
-                </button>
-              </div>
-            }
-          </div>
-        }
-
-      </div>
-    </nav>
-  </header>
+<!--  Хедер -->
+  <app-header></app-header>
 
   <main class="app-content">
     <router-outlet />
