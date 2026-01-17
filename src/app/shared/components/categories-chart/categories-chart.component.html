@@ -1,0 +1,9 @@
+<div class="categories-chart-container">
+  <h3 class="categories-chart-title">Категории</h3>
+  <div class="categories-chart-wrapper" [class.hidden]="!hasData()">
+    <canvas #canvas></canvas>
+  </div>
+  <div *ngIf="!hasData()" class="categories-chart-empty">
+    Нет данных для отображения
+  </div>
+</div>

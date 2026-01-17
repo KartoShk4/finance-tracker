@@ -1,0 +1,330 @@
+.about-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.about-header {
+  margin-bottom: var(--space-2xl);
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+  margin-bottom: var(--space-lg);
+}
+
+.back-button:hover {
+  color: var(--color-primary);
+}
+
+.about-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+.about-section {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-md) 0;
+}
+
+.section-text {
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* Лицензия секция */
+.license-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+}
+
+.license-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.license-badge h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.license-badge p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Технологии */
+.tech-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.tech-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.tech-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+
+.tech-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* Поддержка проекта */
+.donation-section {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border-color: var(--color-primary);
+}
+
+.donation-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.donation-emoji {
+  font-size: 2rem;
+}
+
+.donation-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin: var(--space-xl) 0;
+}
+
+.donation-card {
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  transition: all var(--transition-fast);
+}
+
+.donation-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.donation-icon {
+  font-size: 2rem;
+  margin-bottom: var(--space-md);
+}
+
+.donation-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-md) 0;
+}
+
+.donation-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.donation-label {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.donation-value {
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  margin: 0;
+  position: relative;
+}
+
+.donation-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+  margin-top: var(--space-md);
+  width: 100%;
+}
+
+.donation-link-button:hover {
+  background-color: #6366f1;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.donation-link-button:active {
+  transform: translateY(0);
+}
+
+.external-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.donation-note {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-top: var(--space-sm);
+  padding: var(--space-sm);
+  background-color: rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+.donation-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.donation-link:hover {
+  text-decoration: underline;
+}
+
+.donation-thanks {
+  text-align: center;
+  padding: var(--space-xl);
+  background-color: rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-lg);
+}
+
+.donation-thanks p:first-child {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.donation-subtext {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Контакты */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.contact-link:hover {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.contact-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.contact-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .about-page {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .about-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .about-section {
+    padding: var(--space-lg);
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .donation-methods {
+    grid-template-columns: 1fr;
+  }
+
+  .tech-stack {
+    grid-template-columns: 1fr;
+  }
+}

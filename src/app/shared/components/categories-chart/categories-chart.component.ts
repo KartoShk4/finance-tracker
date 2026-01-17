@@ -27,85 +27,8 @@ export interface CategoryChartData {
   standalone: true,
   imports: [CommonModule],
   selector: 'app-categories-chart',
-  template: `
-    <div class="categories-chart-container">
-      <h3 class="categories-chart-title">Категории</h3>
-      <div class="categories-chart-wrapper" [class.hidden]="!hasData()">
-        <canvas #canvas></canvas>
-      </div>
-      <div *ngIf="!hasData()" class="categories-chart-empty">
-        Нет данных для отображения
-      </div>
-    </div>
-  `,
-  styles: [`
-    .categories-chart-container {
-      background-color: var(--color-bg-card);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-lg);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .categories-chart-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
-      margin-bottom: var(--space-lg);
-    }
-
-    .categories-chart-wrapper {
-      position: relative;
-      height: 400px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      &.hidden {
-        display: none;
-      }
-    }
-
-    .categories-chart-empty {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 400px;
-      color: var(--color-text-tertiary);
-      font-size: 0.875rem;
-    }
-
-    @media (max-width: 480px) {
-      .categories-chart-container {
-        padding: var(--space-md) var(--space-sm);
-      }
-
-      .categories-chart-wrapper {
-        height: 300px;
-      }
-
-      .categories-chart-empty {
-        height: 300px;
-        font-size: 0.8125rem;
-      }
-
-      .categories-chart-title {
-        font-size: 1rem;
-        margin-bottom: var(--space-md);
-      }
-    }
-
-    @media (min-width: 481px) and (max-width: 1023px) {
-      .categories-chart-wrapper {
-        height: 350px;
-      }
-
-      .categories-chart-empty {
-        height: 350px;
-      }
-    }
-  `]
+  templateUrl: './categories-chart.component.html' ,
+  styleUrl: './categories-chart.component.scss',
 })
 export class CategoriesChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() categories: CategoryChartData[] = [];
@@ -205,13 +128,27 @@ export class CategoriesChartComponent implements AfterViewInit, OnChanges, OnDes
             ticks: {
               callback: function(value) {
                 return value.toLocaleString('ru-RU') + ' ₽';
+              },
+              color: '#FFFFFF',
+              font: {
+                family: "'Inter', sans-serif"
               }
+            },
+            grid: {
+              color: 'rgba(251,251,251,0.1)' // Светло-серые линии сетки
             }
           },
           x: {
             ticks: {
               maxRotation: 45,
-              minRotation: 45
+              minRotation: 45,
+              color: '#FFFFFF',
+              font: {
+                family: "'Inter', sans-serif"
+              }
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)' // Светло-серые линии сетки
             }
           }
         },
@@ -239,7 +176,7 @@ export class CategoriesChartComponent implements AfterViewInit, OnChanges, OnDes
             },
             bodyFont: {
               size: 13,
-              family: "'Inter', sans-serif"
+              family: "'Inter', sans-serif",
             },
             borderColor: 'rgba(255, 255, 255, 0.1)',
             borderWidth: 1,

@@ -1,13 +1,23 @@
 <div class="home-page">
-  <!-- Индикатор демо-режима -->
-  <div *ngIf="isDemoMode()" class="demo-banner">
-    <div class="demo-banner-content">
-      <span class="demo-text">Демо-режим: вы видите пример данных. Войдите в систему, чтобы создавать и сохранять свои категории.</span>
-<!--      <button class="demo-login-btn" (click)="scrollToTop()">Войти</button>-->
-    </div>
-  </div>
-
   <div class="home-layout">
+    <!-- Индикатор демо-режима -->
+    @if (isDemoMode()) {
+      <div class="demo-form-hint">
+        @if (canCreateInDemo()) {
+          <span>
+            Вы можете создать {{ DEMO_LIMIT - userItemsCount() }}
+            категори{{ DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и' }} для теста.
+            Войдите в систему, чтобы создавать неограниченное количество категорий.
+          </span>
+        }
+        @if (!canCreateInDemo()) {
+          <span>
+            Достигнут лимит демо-режима ({{ DEMO_LIMIT }} категории). Войдите в систему, чтобы создавать неограниченное количество категорий.
+          </span>
+        }
+      </div>
+    }
+
     <div class="home-content">
       <!-- Форма добавления нового item -->
       <div class="home-form" [class.demo-disabled]="isDemoMode() && !canCreateInDemo()">
@@ -19,55 +29,43 @@
               name="title"
               [placeholder]="isDemoMode() && !canCreateInDemo() ? 'Лимит достигнут. Войдите для создания' : (isDemoMode() ? `Демо: можно создать ${DEMO_LIMIT - userItemsCount()} категори${DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и'}` : 'Название категории')"
               [disabled]="isDemoMode() && !canCreateInDemo()"
-              required />
+              required/>
             <button type="submit" [disabled]="isDemoMode() && !canCreateInDemo()">Добавить</button>
           </div>
         </form>
-        <div *ngIf="isDemoMode()" class="demo-form-hint">
-          <span *ngIf="canCreateInDemo()">
-            Вы можете создать {{ DEMO_LIMIT - userItemsCount() }} категори{{ DEMO_LIMIT - userItemsCount() === 1 ? 'ю' : 'и' }} для теста.
-            Войдите в систему, чтобы создавать неограниченное количество категорий.
-          </span>
-          <span *ngIf="!canCreateInDemo()">
-            Достигнут лимит демо-режима ({{ DEMO_LIMIT }} категории). Войдите в систему, чтобы создавать неограниченное количество категорий.
-          </span>
-        </div>
       </div>
 
       <!-- Список items -->
-      <div class="items-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
-        <div
-          *ngFor="let item of items(); trackBy: trackByItemId"
-          class="items-item"
-          [class.favorite]="item.isFavorite"
-          [cdkDragDisabled]="isMobile() && !dragActivated"
-          cdkDrag
-          (touchstart)="onTouchStart($event, item)"
-          (touchend)="onTouchEnd($event)"
-          (touchmove)="onTouchMove($event)">
-          <div class="items-item-content" (click)="!isDragging && !dragActivated && open(item.id)">
-            <button
-              class="favorite-button"
-              [class.active]="item.isFavorite"
-              (click)="toggleFavorite(item.id, $event)"
-              title="{{ item.isFavorite ? 'Убрать из избранного' : 'Добавить в избранное' }}">
-              ★
-            </button>
-            <div class="items-item-info">
-              <div class="items-item-title">{{ item.title }}</div>
-              <div class="items-item-meta">
-                <span class="items-item-date">
-                  Обновлено: {{ item.lastUpdated | localDate:'short' }}
-                </span>
+      <div class="items-list">
+        @for (item of items(); track trackByItemId($index, item)) {
+          <div class="items-item" [class.favorite]="item.isFavorite">
+            <div class="items-item-content">
+              <button
+                class="favorite-button"
+                [class.active]="item.isFavorite"
+                (click)="toggleFavorite(item.id, $event)"
+                title="{{ item.isFavorite ? 'Убрать из избранного' : 'Добавить в избранное' }}">
+                ★
+              </button>
+              <div class="items-item-info" (click)="open(item.id)">
+                <div class="items-item-title">{{ item.title }}</div>
+                <div class="items-item-meta">
+          <span class="items-item-date">
+            Обновлено: {{ item.lastUpdated | localDate:'short' }}
+          </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        }
+
 
         <!-- Пустое состояние -->
-        <div *ngIf="items().length === 0" class="items-empty">
-          <p>Нет категорий. Создайте первую категорию для отслеживания финансов.</p>
-        </div>
+        @if (items().length === 0) {
+          <div class="items-empty">
+            <p>Нет категорий. Создайте первую категорию для отслеживания финансов.</p>
+          </div>
+        }
       </div>
     </div>
 
@@ -75,13 +73,14 @@
     <div class="home-chart desktop-chart">
       <div class="home-charts-container">
         <div class="home-period-controls">
-          <button
-            *ngFor="let p of periods"
-            class="home-period-button"
-            [class.active]="selectedPeriod() === p.value"
-            (click)="selectedPeriod.set(p.value)">
-            {{ p.label }}
-          </button>
+          @for (p of periods; track p.value) {
+            <button
+              class="home-period-button"
+              [class.active]="selectedPeriod() === p.value"
+              (click)="selectedPeriod.set(p.value)">
+              {{ p.label }}
+            </button>
+          }
         </div>
         <!-- Первый график: общие доходы и расходы -->
         <app-pie-chart
@@ -104,13 +103,14 @@
     <div class="mobile-chart-panel" [class.open]="showMobileChart">
       <div class="mobile-charts-container">
         <div class="home-period-controls">
-          <button
-            *ngFor="let p of periods"
-            class="home-period-button"
-            [class.active]="selectedPeriod() === p.value"
-            (click)="selectedPeriod.set(p.value)">
-            {{ p.label }}
-          </button>
+          @for (p of periods; track p.value) {
+            <button
+              class="home-period-button"
+              [class.active]="selectedPeriod() === p.value"
+              (click)="selectedPeriod.set(p.value)">
+              {{ p.label }}
+            </button>
+          }
         </div>
         <!-- Первый график: общие доходы и расходы -->
         <app-pie-chart
@@ -152,7 +152,8 @@
       В демо-режиме вы можете создать только <strong>{{ DEMO_LIMIT }} категории</strong> для тестирования функционала.
     </p>
     <p style="margin-top: var(--space-md); color: var(--color-text-secondary);">
-      Вы успешно создали {{ userItemsCount() }} категори{{ userItemsCount() === 1 ? 'ю' : 'и' }} и увидели, как работает приложение.
+      Вы успешно создали {{ userItemsCount() }} категори{{ userItemsCount() === 1 ? 'ю' : 'и' }} и увидели, как работает
+      приложение.
     </p>
     <p style="margin-top: var(--space-md); color: var(--color-text-primary); font-weight: 500;">
       🔐 <strong>Авторизуйтесь через VK</strong>, чтобы получить полный доступ ко всем функциям:

@@ -1,0 +1,54 @@
+<div class="history-page">
+  <div class="history-header">
+    <a routerLink="/" class="back-button">← Назад</a>
+    <h2 class="history-title">История изменений</h2>
+    <button class="clear-button" (click)="openClearHistoryModal()">Очистить</button>
+  </div>
+
+  <div class="history-list">
+    @for (entry of history(); track entry.id) {
+      <div class="history-item"
+           [class.created]="entry.action === 'created'"
+           [class.deleted]="entry.action === 'deleted'">
+        <div class="history-item-icon">
+          @if (entry.action === 'created') {
+            <span>+</span>
+          }
+          @if (entry.action === 'deleted') {
+            <span>×</span>
+          }
+        </div>
+        <div class="history-item-content">
+          <div class="history-item-main">
+            <span class="history-item-title">{{ entry.entityTitle }}</span>
+            <span class="history-item-meta">
+                {{ entry.entityType === 'item' ? 'Категория' : 'Транзакция' }} •
+              {{ entry.action === 'created' ? 'создана' : 'удалена' }} •
+              {{ entry.timestamp | localDate:'short' }}
+              </span>
+          </div>
+        </div>
+      </div>
+    }
+
+
+    @if (history().length === 0) {
+      <div class="history-empty">
+        <p>История пуста</p>
+      </div>
+    }
+
+  </div>
+
+  <!-- Модальное окно очистки истории -->
+  <app-modal
+    [isOpen]="showClearHistoryModal()"
+    title="Очистка истории"
+    [confirmDanger]="true"
+    confirmText="Очистить"
+    (confirm)="confirmClearHistory()"
+    (closeEvent)="showClearHistoryModal.set(false)">
+    <p>Вы уверены, что хотите очистить всю историю изменений?</p>
+    <p style="color: var(--color-expense); margin-top: var(--space-md);">Это действие нельзя отменить.</p>
+  </app-modal>
+</div>

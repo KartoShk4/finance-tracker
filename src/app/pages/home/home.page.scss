@@ -126,7 +126,6 @@
   margin-bottom: var(--space-lg);
 
   &.demo-disabled {
-    opacity: 0.6;
     position: relative;
 
     &::before {
@@ -173,7 +172,7 @@
   input[type="text"] {
     flex: 1;
     min-width: 200px;
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-md) var(--space-md);
     font-size: 1rem;
 
     &:disabled {
@@ -195,7 +194,7 @@
   }
 
   button {
-    padding: var(--space-sm) var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
     background-color: var(--color-primary);
     color: white;
     border-radius: var(--radius-md);
@@ -403,17 +402,12 @@
   &:hover {
     border-color: #fbbf24;
     color: #fbbf24;
-    transform: scale(1.1);
   }
 
   &.active {
     background-color: #fbbf24;
     border-color: #fbbf24;
     color: white;
-  }
-
-  &:active {
-    transform: scale(0.95);
   }
 }
 
@@ -422,7 +416,6 @@
   align-items: center;
   gap: var(--space-md);
 }
-
 
 .items-item-title {
   font-weight: 500;
@@ -547,6 +540,7 @@
   padding: var(--space-sm) var(--space-md);
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 500;
@@ -661,7 +655,7 @@
   }
 
   .items-item {
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-lg) var(--space-md);
     gap: var(--space-sm);
     width: 100%;
     max-width: 100%;
@@ -763,7 +757,7 @@
   }
 
   .items-item {
-    padding: var(--space-md);
+    padding: var(--space-lg);
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-sm);
