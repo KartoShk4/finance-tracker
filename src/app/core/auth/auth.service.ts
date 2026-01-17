@@ -303,6 +303,7 @@ export class VkAuthService {
     // Сохраняем в Supabase (опционально)
     try {
       await this.saveUserToSupabase(user);
+      console.log('Пользователь успешно сохранен в Supabase:', user.id);
     } catch (error) {
       console.warn('Не удалось сохранить пользователя в Supabase:', error);
       // Не блокируем процесс, если Supabase недоступен

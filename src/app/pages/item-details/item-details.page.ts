@@ -10,6 +10,7 @@ import { DateTimePickerComponent } from '../../shared/components/date-time-picke
 import { LocalDatePipe } from '../../shared/pipes/date-format.pipe';
 import { ChartComponent } from '../../shared/components/chart/chart.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { VkLoginComponent } from '../../shared/components/vk-login/vk-login.components';
 import { aggregateByPeriod, PeriodType } from '../../shared/utils/chart.utils';
 
 /**
@@ -18,7 +19,7 @@ import { aggregateByPeriod, PeriodType } from '../../shared/utils/chart.utils';
  */
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DateTimePickerComponent, LocalDatePipe, ChartComponent, ModalComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DateTimePickerComponent, LocalDatePipe, ChartComponent, ModalComponent, VkLoginComponent],
   templateUrl: './item-details.page.html',
   styleUrls: ['./item-details.page.scss']
 })
@@ -28,10 +29,10 @@ export class ItemDetailsPage {
   private txStore = inject(TransactionStore);
   private itemStore = inject(ItemStore);
   private subcategoryStore = inject(SubcategoryStore);
-  private authService = inject(VkAuthService);
+  authService = inject(VkAuthService);
 
-  /** Флаг демо-режима */
-  isDemoMode = this.itemStore.isDemoMode;
+  /** Проверка авторизации */
+  isAuthenticated = computed(() => this.authService.isAuthenticated());
 
   /** ID текущего item из параметров маршрута */
   itemId = this.route.snapshot.paramMap.get('id')!;
@@ -98,12 +99,12 @@ export class ItemDetailsPage {
   /** Отфильтрованные транзакции */
   filteredTransactions = computed(() => {
     let filtered = this.transactions();
-
+    
     // Фильтрация по типу транзакции
     if (this.transactionFilter() !== 'all') {
       filtered = filtered.filter(tx => tx.type === this.transactionFilter());
     }
-
+    
     return filtered;
   });
 
@@ -119,15 +120,6 @@ export class ItemDetailsPage {
     return aggregateByPeriod(transactions, this.selectedPeriod());
   });
 
-  /**
-   * Проверка возможности создания транзакции в демо-режиме
-   */
-  canCreateTransactionInDemo(): boolean {
-    if (!this.isDemoMode()) return true;
-    // Считаем только пользовательские транзакции (не демо)
-    const userTransactions = this.transactions().filter(tx => !tx.id.startsWith('demo-tx-'));
-    return userTransactions.length < 2;
-  }
 
   /**
    * Добавление новой транзакции
@@ -152,12 +144,10 @@ export class ItemDetailsPage {
       return;
     }
 
-    // В демо-режиме проверяем лимит
-    if (this.isDemoMode()) {
-      if (!this.canCreateTransactionInDemo()) {
-        alert('В демо-режиме можно создать только 2 транзакции. Войдите в систему для создания неограниченного количества транзакций.');
-        return;
-      }
+    // Проверка авторизации
+    if (!this.authService.isAuthenticated()) {
+      alert('Необходима авторизация для создания транзакций. Войдите в систему.');
+      return;
     }
 
     const item = this.currentItem();
@@ -168,61 +158,46 @@ export class ItemDetailsPage {
 
     // Устанавливаем флаг сохранения
     this._isSaving.set(true);
-
+    
     try {
       // Тип транзакции выбирается пользователем
       const type = this.transactionType;
 
-      let subcategoryId: string | undefined =
-        this.selectedSubcategoryId || undefined;
+      let subcategoryId: string | undefined = undefined;
+
+      // Если выбрано создание новой подкатегории
+      if (this.selectedSubcategoryId === '__create_new__') {
+        if (!this.newSubcategoryName.trim()) {
+          alert('Введите название подкатегории');
+          this._isSaving.set(false);
+          return;
+        }
+        // Создаем подкатегорию
+        const subcategory = await this.subcategoryStore.create(this.itemId, this.newSubcategoryName.trim());
+        subcategoryId = subcategory.id;
+      } else if (this.selectedSubcategoryId) {
+        subcategoryId = this.selectedSubcategoryId;
+      }
 
       // Добавляем транзакцию с выбранной датой, примечанием и подкатегорией, получаем дельту (изменение суммы)
       const delta = await this.txStore.add(
-        this.itemId,
-        type,
-        this.amount,
-        this.transactionDate,
+        this.itemId, 
+        type, 
+        this.amount, 
+        this.transactionDate, 
         this.notes,
         subcategoryId
       );
-
+      
       // Обновляем общую сумму item
       await this.itemStore.applyDelta(this.itemId, delta);
-
+      
       // Сбрасываем форму только после успешного создания
       this.resetForm();
     } catch (error: any) {
-      if (error.message === 'DEMO_TRANSACTION_LIMIT_REACHED') {
-        alert('В демо-режиме можно создать только 2 транзакции. Войдите в систему для создания неограниченного количества транзакций.');
-      } else {
-        alert(error.message || 'Ошибка при добавлении транзакции');
-      }
+      alert(error.message || 'Ошибка при добавлении транзакции');
     } finally {
       // Снимаем флаг сохранения в любом случае
-      this._isSaving.set(false);
-    }
-  }
-
-  /**
-   * Создание новой подкатегории по кнопке-галочке
-   */
-  async createSubcategory(): Promise<void> {
-    if (this.isSaving()) return;
-
-    const name = this.newSubcategoryName.trim();
-    if (!name) return;
-
-    this._isSaving.set(true);
-
-    try {
-      const subcategory = await this.subcategoryStore.create(this.itemId, name);
-
-      // сразу выбираем созданный тег
-      this.selectedSubcategoryId = subcategory.id;
-
-      // очищаем инпут
-      this.newSubcategoryName = '';
-    } finally {
       this._isSaving.set(false);
     }
   }
@@ -240,20 +215,28 @@ export class ItemDetailsPage {
   }
 
   /**
+   * Обработка потери фокуса при создании подкатегории
+   */
+  onSubcategoryNameBlur(): void {
+    // Если название введено, можно автоматически создать подкатегорию при потере фокуса
+    // Или оставить как есть - создание произойдет при отправке формы
+  }
+
+  /**
    * Удаление транзакции
    * @param id - ID транзакции
    */
   async deleteTransaction(id: string): Promise<void> {
-    // В демо-режиме запрещаем удаление транзакций
-    if (this.isDemoMode()) {
-      alert('Войдите в систему, чтобы удалять транзакции');
+    // Проверка авторизации
+    if (!this.authService.isAuthenticated()) {
+      alert('Необходима авторизация для удаления транзакций. Войдите в систему.');
       return;
     }
 
     try {
       // Удаляем транзакцию и получаем дельту для отката изменений
       const delta = await this.txStore.delete(id);
-
+      
       // Обновляем общую сумму item (откатываем изменения)
       await this.itemStore.applyDelta(this.itemId, delta);
     } catch (error: any) {
@@ -291,14 +274,14 @@ export class ItemDetailsPage {
    * @param id - ID транзакции
    */
   async saveEdit(id: string): Promise<void> {
-    // В демо-режиме запрещаем редактирование транзакций
-    if (this.isDemoMode()) {
-      alert('Войдите в систему, чтобы редактировать транзакции');
+    // Проверка авторизации
+    if (!this.authService.isAuthenticated()) {
+      alert('Необходима авторизация для редактирования транзакций. Войдите в систему.');
       return;
     }
 
     if (this.editAmount <= 0) return;
-
+    
     // Убеждаемся, что дата валидна и в формате ISO
     let validDate = this.editDate;
     if (!validDate || validDate.trim() === '') {
@@ -324,7 +307,7 @@ export class ItemDetailsPage {
       // Удаляем старую транзакцию
       const deleteDelta = await this.txStore.delete(id);
       await this.itemStore.applyDelta(this.itemId, deleteDelta);
-
+      
       // Создаем новую транзакцию с новым типом
       const addDelta = await this.txStore.add(
         this.itemId,

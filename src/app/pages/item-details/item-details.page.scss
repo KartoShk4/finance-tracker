@@ -11,31 +11,32 @@
   box-sizing: border-box;
 }
 
-/* Демо-баннер */
-.demo-banner {
+/* Баннер для неавторизованных пользователей */
+.auth-required-banner {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-xl);
 }
 
-.demo-banner-content {
+.auth-required-content {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-md);
-  flex-wrap: wrap;
+  text-align: center;
 }
 
-.demo-icon {
-  font-size: 1.5rem;
+.auth-icon {
+  font-size: 2rem;
 }
 
-.demo-text {
-  flex: 1;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  min-width: 200px;
+.auth-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 600px;
 }
 
 /* Заголовок страницы */
@@ -94,22 +95,7 @@
   box-shadow: var(--shadow-sm);
   margin-bottom: var(--space-lg);
 
-  &.demo-disabled {
-    opacity: 0.7;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.02);
-      border-radius: var(--radius-lg);
-      pointer-events: none;
-    }
-  }
+  /* Удалено: .demo-disabled - больше не используется */
 
   .form-header {
     margin-bottom: var(--space-lg);
@@ -197,10 +183,6 @@
     padding-top: var(--space-lg);
     border-top: 1px solid var(--color-border);
 
-    &.demo-disabled {
-      opacity: 0.7;
-      pointer-events: none;
-    }
   }
 
   .subcategories-header {
@@ -789,10 +771,7 @@
     gap: var(--space-lg);
   }
 
-  .demo-banner {
-    padding: var(--space-sm) var(--space-md);
-    margin-bottom: var(--space-md);
-  }
+  /* Удалено: .demo-banner - больше не используется */
 
   .page-header {
     flex-direction: column;

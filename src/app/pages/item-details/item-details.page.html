@@ -1,24 +1,23 @@
 <div class="item-details-page">
-  <!-- Демо-баннер для демо-режима -->
-  @if (isDemoMode()) {
-    <div class="demo-banner">
-      <div class="demo-banner-content">
-        <span class="demo-text">Демо-режим: вы видите пример данных. Войдите в систему, чтобы создавать и сохранять свои транзакции.</span>
-      </div>
-    </div>
-  }
-
   <!-- Заголовок с кнопками -->
   <div class="page-header">
     <a routerLink="/" class="back-button">← Назад к списку</a>
-    @if (!isDemoMode()) {
-      <button
-        class="delete-category-button"
-        (click)="openDeleteCategoryModal()"
-        title="Удалить категорию">
-        Удалить категорию
-      </button>
-    }
+    <button 
+      *ngIf="authService.isAuthenticated()"
+      class="delete-category-button"
+      (click)="openDeleteCategoryModal()"
+      title="Удалить категорию">
+      Удалить категорию
+    </button>
+  </div>
+  
+  <!-- Сообщение для неавторизованных пользователей -->
+  <div *ngIf="!authService.isAuthenticated()" class="auth-required-banner">
+    <div class="auth-required-content">
+      <span class="auth-icon">🔐</span>
+      <span class="auth-text">Для просмотра и управления транзакциями необходимо авторизоваться через VK.</span>
+      <app-vk-login></app-vk-login>
+    </div>
   </div>
 
   <!-- График транзакций по периодам (перенесен наверх) -->
@@ -31,51 +30,78 @@
     </app-chart>
   </div>
 
+  <!-- Фильтр по типу транзакции -->
+  <div class="transaction-filter">
+    <button
+      class="filter-button"
+      [class.active]="transactionFilter() === 'all'"
+      (click)="transactionFilter.set('all')">
+      Все
+    </button>
+    <button
+      class="filter-button"
+      [class.active]="transactionFilter() === 'income'"
+      (click)="transactionFilter.set('income')">
+      Доходы
+    </button>
+    <button
+      class="filter-button"
+      [class.active]="transactionFilter() === 'expense'"
+      (click)="transactionFilter.set('expense')">
+      Расходы
+    </button>
+  </div>
+
   <!-- Форма добавления транзакции -->
-  <div class="transaction-form" [class.demo-disabled]="isDemoMode() && !canCreateTransactionInDemo()">
-    @if (currentItem()) {
-      <div class="form-header">
-        <h2 class="category-title">{{ currentItem()!.title }}</h2>
-      </div>
-    }
+  <div *ngIf="authService.isAuthenticated()" class="transaction-form">
+    <div class="form-header" *ngIf="currentItem()">
+      <h2 class="category-title">{{ currentItem()!.title }}</h2>
+    </div>
 
     <!-- Форма транзакции -->
     <form (submit)="addTransaction($event)">
       <div class="form-row">
-        <select [(ngModel)]="transactionType" name="transactionType"
-                [disabled]="isDemoMode() && !canCreateTransactionInDemo() || isSaving()">
+        <select [(ngModel)]="transactionType" name="transactionType" [disabled]="isSaving()">
           <option value="income">Доход</option>
           <option value="expense">Расход</option>
         </select>
-        <input
-          type="number"
-          [(ngModel)]="amount"
-          name="amount"
-          [placeholder]="isDemoMode() && !canCreateTransactionInDemo() ? 'Лимит достигнут. Войдите для создания' : 'Сумма'"
-          [disabled]="isDemoMode() && !canCreateTransactionInDemo() || isSaving()"
+        <input 
+          type="number" 
+          [(ngModel)]="amount" 
+          name="amount" 
+          placeholder="Сумма"
+          [disabled]="isSaving()"
           min="0.01"
           step="0.01"
-          required/>
+          required />
         <app-date-time-picker
           [(ngModel)]="transactionDate"
           name="transactionDate"
-          [disabled]="isDemoMode() && !canCreateTransactionInDemo() || isSaving()">
+          [disabled]="isSaving()">
         </app-date-time-picker>
-        <button type="submit" [disabled]="isDemoMode() && !canCreateTransactionInDemo() || isSaving() || amount <= 0">
+        <button type="submit" [disabled]="isSaving() || amount <= 0">
           {{ isSaving() ? 'Сохранение...' : 'Добавить' }}
         </button>
+      </div>
+      
+      <div class="form-row">
+        <input 
+          type="text" 
+          [(ngModel)]="notes" 
+          name="notes" 
+          placeholder="Примечание (необязательно)"
+          [disabled]="isSaving()"
+          maxlength="500" />
       </div>
     </form>
 
     <!-- Блок тегов -->
-    <div class="subcategories-section" [class.demo-disabled]="isDemoMode()">
+    <div class="subcategories-section">
       <div class="subcategories-header">
-        <label class="subcategories-title">Вы можете добавить удобные теги</label>
-        @if (subcategories().length > 0) {
-          <span class="subcategories-count">
+        <label class="subcategories-title">Тег (необязательно)</label>
+        <span class="subcategories-count" *ngIf="subcategories().length > 0">
           {{ subcategories().length }} {{ subcategories().length === 1 ? 'тег' : 'тегов' }}
         </span>
-        }
       </div>
 
       <!-- Быстрый выбор подкатегорий -->
@@ -84,191 +110,150 @@
           type="button"
           class="subcategory-tag"
           [class.active]="selectedSubcategoryId === null"
-          [disabled]="isDemoMode() || isSaving()"
+          [disabled]="isSaving()"
           (click)="selectedSubcategoryId = null">
           Без тега
         </button>
-        @for (sub of subcategories(); track sub.id) {
-          <button
-            type="button"
-            class="subcategory-tag"
-            [class.active]="selectedSubcategoryId === sub.id"
-            [disabled]="isDemoMode() || isSaving()"
-            (click)="selectedSubcategoryId = sub.id">
-            {{ sub.title }}
-          </button>
-        }
-
+        <button
+          *ngFor="let sub of subcategories()"
+          type="button"
+          class="subcategory-tag"
+          [class.active]="selectedSubcategoryId === sub.id"
+          [disabled]="isSaving()"
+          (click)="selectedSubcategoryId = sub.id">
+          {{ sub.title }}
+        </button>
         <button
           type="button"
           class="subcategory-tag subcategory-tag-create"
           [class.active]="selectedSubcategoryId === '__create_new__'"
-          [disabled]="isDemoMode() || isSaving()"
+          [disabled]="isSaving()"
           (click)="selectedSubcategoryId = '__create_new__'">
-          + Создать новый
+          + Создать новую
         </button>
       </div>
 
-      @if (selectedSubcategoryId === '__create_new__' && !isDemoMode()) {
-        <div class="create-subcategory-form">
-          <input
-            type="text"
-            [(ngModel)]="newSubcategoryName"
-            name="newSubcategoryName"
-            placeholder="Введите название нового тега"
-            maxlength="100"
-            class="subcategory-name-input"
-            [disabled]="isSaving()"
-            (keydown.enter)="createSubcategory()"
-            autofocus />
-
-          <button
-            type="button"
-            class="create-subcategory-confirm"
-            [disabled]="!newSubcategoryName.trim() || isSaving()"
-            (click)="createSubcategory()"
-            title="Создать тег"
-            aria-label="Создать тег">
-            ✔
-          </button>
-        </div>
-      }
-
-    </div>
-
-    <div class="form-row">
-      <input
-        type="text"
-        [(ngModel)]="notes"
-        name="notes"
-        [placeholder]="isDemoMode() ? 'Войдите, чтобы добавлять примечания' : 'Примечание (необязательно)'"
-        [disabled]="isDemoMode() || isSaving()"
-        maxlength="500"/>
+      <!-- Форма создания новой подкатегории -->
+      <div *ngIf="selectedSubcategoryId === '__create_new__'" class="create-subcategory-form">
+        <input 
+          type="text" 
+          [(ngModel)]="newSubcategoryName" 
+          name="newSubcategoryName"
+          placeholder="Введите название нового тега"
+          maxlength="100"
+          class="subcategory-name-input"
+          [disabled]="isSaving()"
+          autofocus />
+      </div>
     </div>
   </div>
 
 
   <!-- Список транзакций -->
   <div class="transactions-list">
-    @for (t of filteredTransactions(); track t.id) {
-      <div class="transaction-item">
-
-        <!-- Режим просмотра -->
-        @if (editingTransactionId !== t.id) {
-          <ng-container>
-            <div class="transaction-item-content">
-              <div class="transaction-main-info">
-                <div class="transaction-header">
+    <div 
+      *ngFor="let t of filteredTransactions()"
+      class="transaction-item">
+      
+      <!-- Режим просмотра -->
+      <ng-container *ngIf="editingTransactionId !== t.id">
+        <div class="transaction-item-content">
+          <div class="transaction-main-info">
+            <div class="transaction-header">
               <span class="transaction-date">
                 {{ t.date | localDate:'short' }}
               </span>
-                  @if (t.subcategory_id) {
-                    <span class="transaction-subcategory-badge">
-                      {{ getSubcategoryName(t.subcategory_id) }}
-                    </span>
-                  }
-                </div>
-                @if (t.notes) {
-                  <div class="transaction-notes"
-                       [title]="t.notes.length > 50 ? t.notes : ''">
-                    {{ t.notes.length > 50 ? (t.notes | slice:0:50) + '...' : t.notes }}
-                  </div>
-                }
-
-              </div>
+              <span 
+                *ngIf="t.subcategory_id"
+                class="transaction-subcategory-badge">
+                {{ getSubcategoryName(t.subcategory_id) }}
+              </span>
             </div>
-            <div class="transaction-item-actions">
-              <div
-                class="transaction-amount"
-                [class.income]="t.type === 'income'"
-                [class.expense]="t.type === 'expense'">
-                {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | number:'1.2-2' }} ₽
-              </div>
-              @if (!isDemoMode()) {
-                <button class="edit-button"
-                        (click)="startEdit(t)"
-                        title="Редактировать транзакцию">
-                  ✎
-                </button>
-              }
-
-              @if (!isDemoMode()) {
-                <button class="delete-button"
-                        (click)="deleteTransaction(t.id)"
-                        title="Удалить транзакцию">
-                  ×
-                </button>
-              }
+            <div 
+              *ngIf="t.notes" 
+              class="transaction-notes"
+              [title]="t.notes.length > 50 ? t.notes : ''">
+              {{ t.notes.length > 50 ? (t.notes | slice:0:50) + '...' : t.notes }}
             </div>
-          </ng-container>
-        }
+          </div>
+        </div>
+        <div class="transaction-item-actions">
+          <div 
+            class="transaction-amount"
+            [class.income]="t.type === 'income'"
+            [class.expense]="t.type === 'expense'">
+            {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | number:'1.2-2' }} ₽
+          </div>
+          <button 
+            *ngIf="authService.isAuthenticated()"
+            class="edit-button"
+            (click)="startEdit(t)"
+            title="Редактировать транзакцию">
+            ✎
+          </button>
+          <button 
+            *ngIf="authService.isAuthenticated()"
+            class="delete-button"
+            (click)="deleteTransaction(t.id)"
+            title="Удалить транзакцию">
+            ×
+          </button>
+        </div>
+      </ng-container>
 
-        <!-- Режим редактирования -->
-        @if (editingTransactionId === t.id) {
-          <ng-container>
-            <div class="transaction-edit-form">
-              <form (submit)="saveEdit(t.id); $event.preventDefault()">
-                <div class="edit-form-row">
-                  <select [(ngModel)]="editTransactionType" name="editTransactionType">
-                    <option value="income">Доход</option>
-                    <option value="expense">Расход</option>
-                  </select>
-                  <input
-                    type="number"
-                    [(ngModel)]="editAmount"
-                    name="editAmount"
-                    placeholder="Сумма"
-                    min="0.01"
-                    step="0.01"
-                    required/>
-                  <app-date-time-picker
-                    [(ngModel)]="editDate"
-                    name="editDate">
-                  </app-date-time-picker>
-                </div>
-                <div class="edit-form-row">
-                  <select
-                    [(ngModel)]="editSubcategoryId"
-                    name="editSubcategoryId"
-                    class="subcategory-select">
-                    <option [value]="null">Без тега</option>
-                    @for (sub of subcategories(); track sub.id) {
-                      <option [value]="sub.id">
-                        {{ sub.title }}
-                      </option>
-                    }
-                  </select>
-                  <input
-                    type="text"
-                    [(ngModel)]="editNotes"
-                    name="editNotes"
-                    placeholder="Примечание (необязательно)"
-                    maxlength="500"/>
-                </div>
-                <div class="edit-form-actions">
-                  <button type="submit" class="save-button">Сохранить</button>
-                  <button type="button" class="cancel-button" (click)="cancelEdit()">Отмена</button>
-                </div>
-              </form>
+      <!-- Режим редактирования -->
+      <ng-container *ngIf="editingTransactionId === t.id">
+        <div class="transaction-edit-form">
+          <form (submit)="saveEdit(t.id); $event.preventDefault()">
+            <div class="edit-form-row">
+              <select [(ngModel)]="editTransactionType" name="editTransactionType">
+                <option value="income">Доход</option>
+                <option value="expense">Расход</option>
+              </select>
+              <input 
+                type="number" 
+                [(ngModel)]="editAmount" 
+                name="editAmount"
+                placeholder="Сумма"
+                min="0.01"
+                step="0.01"
+                required />
+              <app-date-time-picker
+                [(ngModel)]="editDate"
+                name="editDate">
+              </app-date-time-picker>
             </div>
-          </ng-container>
-        }
-
-      </div>
-    }
-
+            <div class="edit-form-row">
+              <select 
+                [(ngModel)]="editSubcategoryId" 
+                name="editSubcategoryId"
+                class="subcategory-select">
+                <option [value]="null">Без тега</option>
+                <option *ngFor="let sub of subcategories()" [value]="sub.id">
+                  {{ sub.title }}
+                </option>
+              </select>
+              <input 
+                type="text" 
+                [(ngModel)]="editNotes" 
+                name="editNotes"
+                placeholder="Примечание (необязательно)"
+                maxlength="500" />
+            </div>
+            <div class="edit-form-actions">
+              <button type="submit" class="save-button">Сохранить</button>
+              <button type="button" class="cancel-button" (click)="cancelEdit()">Отмена</button>
+            </div>
+          </form>
+        </div>
+      </ng-container>
+    </div>
+    
     <!-- Пустое состояние -->
-    @if (filteredTransactions().length === 0) {
-      <div class="transactions-empty">
-        @if (transactions().length === 0) {
-          <p>Нет транзакций. Добавьте первую транзакцию для отслеживания финансов.</p>
-        }
-        @if (transactions().length > 0) {
-          <p>Нет транзакций выбранного типа.</p>
-        }
-      </div>
-    }
-
+    <div *ngIf="filteredTransactions().length === 0" class="transactions-empty">
+      <p *ngIf="transactions().length === 0">Нет транзакций. Добавьте первую транзакцию для отслеживания финансов.</p>
+      <p *ngIf="transactions().length > 0">Нет транзакций выбранного типа.</p>
+    </div>
   </div>
 
   <!-- Модальное окно удаления категории -->
@@ -280,8 +265,7 @@
     (confirm)="confirmDeleteCategory()"
     (closeEvent)="showDeleteCategoryModal = false">
     <p>Вы уверены, что хотите удалить категорию <strong>{{ currentItem()?.title }}</strong>?</p>
-    <p style="color: var(--color-expense); margin-top: var(--space-md);">Все транзакции и теги также будут удалены. Это
-      действие нельзя отменить.</p>
+    <p style="color: var(--color-expense); margin-top: var(--space-md);">Все транзакции и теги также будут удалены. Это действие нельзя отменить.</p>
   </app-modal>
 
   <!-- Модальное окно удаления тега -->

@@ -1,5 +1,4 @@
 <div class="app">
-<!--  Хедер -->
   <app-header></app-header>
 
   <main class="app-content">
@@ -10,9 +9,7 @@
   <app-footer></app-footer>
 
   <!-- FloatingOneTap для неавторизованных пользователей -->
-  @if (!authService.isAuthenticated() && !authService.loading()) {
-    <app-floating-one-tap></app-floating-one-tap>
-  }
+  <app-floating-one-tap *ngIf="!authService.isAuthenticated() && !authService.loading()"></app-floating-one-tap>
 
   <!-- Snackbar для уведомлений -->
   <app-snackbar></app-snackbar>
