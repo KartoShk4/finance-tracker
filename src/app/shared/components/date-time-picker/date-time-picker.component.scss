@@ -1,30 +1,47 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
 .date-time-picker {
   display: flex;
-  gap: var(--space-sm);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
   align-items: center;
-  flex: 1;
-  min-width: 220px;
 }
 
 .date-time-input {
   flex: 1;
-  padding: var(--space-sm) var(--space-md);
+  min-width: 0; /* Критически важно для правильной работы flex */
+  padding: var(--space-md) var(--space-md);
   font-size: 0.95rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-card);
   color: var(--color-text-primary);
   transition: all var(--transition-fast);
-}
+  box-sizing: border-box;
 
-.date-time-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+  }
+
+  &::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+  }
 }
 
 .now-button {
-  padding: var(--space-sm) var(--space-md);
+  flex-shrink: 0; /* Предотвращает сжатие кнопки */
+  padding: var(--space-md) var(--space-md);
   font-size: 0.875rem;
   background-color: var(--color-bg-secondary);
   color: var(--color-text-secondary);
@@ -33,21 +50,51 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-hover);
+    color: var(--color-text-primary);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
 }
 
-.now-button:hover {
-  background-color: var(--color-bg-tertiary);
-  border-color: var(--color-border-hover);
-  color: var(--color-text-primary);
-}
-
+/* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
   .date-time-picker {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-sm);
+  }
+
+  .date-time-input {
+    width: 100%;
   }
 
   .now-button {
     width: 100%;
+  }
+}
+
+/* Стили для flatpickr календаря (опционально) */
+:host ::ng-deep {
+  .flatpickr-calendar {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
+  }
+
+  .flatpickr-day.selected {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  .flatpickr-time input {
+    color: var(--color-text-primary);
   }
 }

@@ -22,7 +22,7 @@ export class TransactionStore {
 
   /** Приватный signal для хранения всех транзакций */
   private readonly _tx = signal<Transaction[]>([]);
-  
+
   /** Публичный computed signal для доступа ко всем транзакциям */
   readonly all = computed(() => this._tx());
 
@@ -42,7 +42,7 @@ export class TransactionStore {
    */
   constructor() {
     this.load();
-    
+
     // Реагируем на изменения авторизации и перезагружаем данные
     // Используем effect для отслеживания изменений состояния авторизации
     effect(() => {
@@ -70,15 +70,15 @@ export class TransactionStore {
   async load(): Promise<void> {
     try {
       const data = await this.repo.getAll();
-      
+
       // Если демо-режим, проверяем версию демо-данных
       if (this.isDemoMode()) {
         const hasDemoData = data.length > 0 && data.some(tx => tx.id.startsWith('demo-tx-'));
-        const hasNewDemoData = data.length > 0 && data.some(tx => 
+        const hasNewDemoData = data.length > 0 && data.some(tx =>
           tx.id === 'demo-tx-f1' || tx.id === 'demo-tx-p5' || tx.id === 'demo-tx-r5' ||
           tx.id === 'demo-tx-u1' || tx.id === 'demo-tx-c1'
         );
-        
+
         // Если нет данных или есть старые демо-данные (без новых ID), загружаем новые
         if (data.length === 0 || (hasDemoData && !hasNewDemoData)) {
           console.log('Обнаружены старые демо-транзакции, обновляю...');
@@ -88,7 +88,7 @@ export class TransactionStore {
           return;
         }
       }
-      
+
       this._tx.set(data);
     } catch (error) {
       console.error('Ошибка загрузки транзакций:', error);
@@ -121,19 +121,13 @@ export class TransactionStore {
       { id: 'demo-tx-1', item_id: 'demo-1', type: 'income', amount: 50000, date: daysAgo(2), notes: 'Зарплата за январь' }
     );
 
-    // Доходы - Фриланс (demo-7)
-    demoTransactions.push(
-      { id: 'demo-tx-f1', item_id: 'demo-7', type: 'income', amount: 15000, date: daysAgo(4), notes: 'Проект #1' },
-      { id: 'demo-tx-f2', item_id: 'demo-7', type: 'income', amount: 10000, date: daysAgo(8), notes: 'Проект #2' }
-    );
-
     // Расходы - Продукты (demo-2) - несколько транзакций для графика
     demoTransactions.push(
       { id: 'demo-tx-p1', item_id: 'demo-2', type: 'expense', amount: 8500, date: daysAgo(0), notes: 'Большой магазин на неделю' },
       { id: 'demo-tx-p2', item_id: 'demo-2', type: 'expense', amount: 3200, date: daysAgo(3), notes: 'Овощи и фрукты' },
       { id: 'demo-tx-p3', item_id: 'demo-2', type: 'expense', amount: 4800, date: daysAgo(7), notes: 'Молочные продукты' },
       { id: 'demo-tx-p4', item_id: 'demo-2', type: 'expense', amount: 2900, date: daysAgo(10), notes: 'Хлеб и выпечка' },
-      { id: 'demo-tx-p5', item_id: 'demo-2', type: 'expense', amount: 4100, date: daysAgo(14), notes: 'Мясо и рыба' }
+      { id: 'demo-tx-p5', item_id: 'demo-2', type: 'expense', amount: 4100, date: daysAgo(14), notes: 'Мясо и рыба' },
     );
 
     // Расходы - Транспорт (demo-3)
@@ -166,6 +160,12 @@ export class TransactionStore {
       { id: 'demo-tx-c3', item_id: 'demo-6', type: 'expense', amount: 3000, date: daysAgo(9), notes: 'Джинсы' }
     );
 
+    // Доходы - Фриланс (demo-7)
+    demoTransactions.push(
+      { id: 'demo-tx-f1', item_id: 'demo-7', type: 'income', amount: 15000, date: daysAgo(4), notes: 'Проект #1' },
+      { id: 'demo-tx-f2', item_id: 'demo-7', type: 'income', amount: 10000, date: daysAgo(8), notes: 'Проект #2' }
+    );
+
     // Расходы - Кафе и рестораны (demo-8)
     demoTransactions.push(
       { id: 'demo-tx-r1', item_id: 'demo-8', type: 'expense', amount: 1200, date: daysAgo(0), notes: 'Кофе на работе' },
@@ -177,7 +177,7 @@ export class TransactionStore {
 
     // Сортируем по дате (от новых к старым)
     demoTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
+
     // Сохраняем и обновляем состояние
     await this.repo.save(demoTransactions);
     this._tx.set(demoTransactions);

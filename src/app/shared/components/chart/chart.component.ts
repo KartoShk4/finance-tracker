@@ -132,7 +132,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
             pointRadius: this.data.length > 20 ? 0 : 4,
             pointHoverRadius: 6,
             pointBackgroundColor: 'rgb(99, 102, 241)',
-            pointBorderColor: '#fff',
+            pointBorderColor: '#FFF', // Белый цвет обводки точек
             pointBorderWidth: 2,
             borderWidth: 2,
             spanGaps: false,
@@ -157,11 +157,11 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
             titleFont: {
               size: 14,
               weight: 'bold',
-              family: "'Inter', sans-serif"
+              family: "'Inter', sans-serif",
             },
             bodyFont: {
               size: 13,
-              family: "'Inter', sans-serif"
+              family: "'Inter', sans-serif",
             },
             borderColor: 'rgba(255, 255, 255, 0.1)',
             borderWidth: 1,
@@ -210,7 +210,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
                 size: 11,
                 family: "'Inter', sans-serif"
               },
-              color: 'rgba(0, 0, 0, 0.6)',
+              color: '#FFF', // Белый цвет текста оси X
               padding: 8
             }
           },
@@ -219,7 +219,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
             beginAtZero: false,
             grid: {
               display: true,
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: 'rgba(255, 255, 255, 0.1)' // Светло-серые линии сетки
             },
             border: {
               display: false
@@ -229,7 +229,7 @@ export class ChartComponent implements AfterViewInit, OnChanges, OnDestroy {
                 size: 11,
                 family: "'Inter', sans-serif"
               },
-              color: 'rgba(0, 0, 0, 0.6)',
+              color: '#FFF', // Белый цвет текста оси Y
               padding: 8,
               callback: (value) => {
                 if (typeof value === 'number') {

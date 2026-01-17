@@ -31,28 +31,6 @@
     </app-chart>
   </div>
 
-  <!-- Фильтр по типу транзакции -->
-  <div class="transaction-filter">
-    <button
-      class="filter-button"
-      [class.active]="transactionFilter() === 'all'"
-      (click)="transactionFilter.set('all')">
-      Все
-    </button>
-    <button
-      class="filter-button"
-      [class.active]="transactionFilter() === 'income'"
-      (click)="transactionFilter.set('income')">
-      Доходы
-    </button>
-    <button
-      class="filter-button"
-      [class.active]="transactionFilter() === 'expense'"
-      (click)="transactionFilter.set('expense')">
-      Расходы
-    </button>
-  </div>
-
   <!-- Форма добавления транзакции -->
   <div class="transaction-form" [class.demo-disabled]="isDemoMode() && !canCreateTransactionInDemo()">
     @if (currentItem()) {
@@ -87,36 +65,12 @@
           {{ isSaving() ? 'Сохранение...' : 'Добавить' }}
         </button>
       </div>
-
-      <div class="form-row">
-        <input
-          type="text"
-          [(ngModel)]="notes"
-          name="notes"
-          [placeholder]="isDemoMode() ? 'Войдите, чтобы добавлять примечания' : 'Примечание (необязательно)'"
-          [disabled]="isDemoMode() || isSaving()"
-          maxlength="500"/>
-      </div>
-      @if (isDemoMode()) {
-        <div class="demo-form-hint">
-          @if (canCreateTransactionInDemo()) {
-            <span>
-              Вы можете создать 2 транзакции для теста. Войдите в систему, чтобы создавать неограниченное количество транзакций.
-            </span>
-          }
-          @if (!canCreateTransactionInDemo()) {
-            <span>
-              Достигнут лимит демо-режима (2 транзакции). Войдите в систему, чтобы создавать неограниченное количество транзакций.
-            </span>
-          }
-        </div>
-      }
     </form>
 
     <!-- Блок тегов -->
     <div class="subcategories-section" [class.demo-disabled]="isDemoMode()">
       <div class="subcategories-header">
-        <label class="subcategories-title">Тег (необязательно)</label>
+        <label class="subcategories-title">Вы можете добавить удобные теги</label>
         @if (subcategories().length > 0) {
           <span class="subcategories-count">
           {{ subcategories().length }} {{ subcategories().length === 1 ? 'тег' : 'тегов' }}
@@ -151,11 +105,10 @@
           [class.active]="selectedSubcategoryId === '__create_new__'"
           [disabled]="isDemoMode() || isSaving()"
           (click)="selectedSubcategoryId = '__create_new__'">
-          + Создать новую
+          + Создать новый
         </button>
       </div>
 
-      <!-- Форма создания новой подкатегории -->
       @if (selectedSubcategoryId === '__create_new__' && !isDemoMode()) {
         <div class="create-subcategory-form">
           <input
@@ -166,9 +119,31 @@
             maxlength="100"
             class="subcategory-name-input"
             [disabled]="isSaving()"
-            autofocus/>
+            (keydown.enter)="createSubcategory()"
+            autofocus />
+
+          <button
+            type="button"
+            class="create-subcategory-confirm"
+            [disabled]="!newSubcategoryName.trim() || isSaving()"
+            (click)="createSubcategory()"
+            title="Создать тег"
+            aria-label="Создать тег">
+            ✔
+          </button>
         </div>
       }
+
+    </div>
+
+    <div class="form-row">
+      <input
+        type="text"
+        [(ngModel)]="notes"
+        name="notes"
+        [placeholder]="isDemoMode() ? 'Войдите, чтобы добавлять примечания' : 'Примечание (необязательно)'"
+        [disabled]="isDemoMode() || isSaving()"
+        maxlength="500"/>
     </div>
   </div>
 

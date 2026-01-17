@@ -93,37 +93,39 @@
         </app-categories-chart>
       </div>
     </div>
-  </div>
 
-  <!-- График для мобильных (аккордеон) -->
-  <div class="mobile-chart">
-    <button class="accordion-toggle" (click)="toggleMobileChart()">
-      {{ showMobileChart ? 'Скрыть график' : 'Показать график' }}
-    </button>
-    <div class="mobile-chart-panel" [class.open]="showMobileChart">
-      <div class="mobile-charts-container">
-        <div class="home-period-controls">
-          @for (p of periods; track p.value) {
-            <button
-              class="home-period-button"
-              [class.active]="selectedPeriod() === p.value"
-              (click)="selectedPeriod.set(p.value)">
-              {{ p.label }}
-            </button>
-          }
+    <!-- График для мобильных (аккордеон) -->
+    <div class="mobile-chart">
+      <button class="accordion-toggle" (click)="toggleMobileChart()">
+        {{ showMobileChart ? 'Скрыть график' : 'Показать график' }}
+      </button>
+      <div class="mobile-chart-panel" [class.open]="showMobileChart">
+        <div class="mobile-charts-container">
+          <div class="home-period-controls">
+            @for (p of periods; track p.value) {
+              <button
+                class="home-period-button"
+                [class.active]="selectedPeriod() === p.value"
+                (click)="selectedPeriod.set(p.value)">
+                {{ p.label }}
+              </button>
+            }
+          </div>
+          <!-- Первый график: общие доходы и расходы -->
+          <app-pie-chart
+            [income]="statistics().income"
+            [expense]="statistics().expense">
+          </app-pie-chart>
+          <!-- Второй график: категории с их доходами и расходами -->
+          <app-categories-chart
+            [categories]="categoriesChartData()">
+          </app-categories-chart>
         </div>
-        <!-- Первый график: общие доходы и расходы -->
-        <app-pie-chart
-          [income]="statistics().income"
-          [expense]="statistics().expense">
-        </app-pie-chart>
-        <!-- Второй график: категории с их доходами и расходами -->
-        <app-categories-chart
-          [categories]="categoriesChartData()">
-        </app-categories-chart>
       </div>
     </div>
   </div>
+
+
 
   <!-- Модальное окно для сообщения об избранном -->
   <app-modal

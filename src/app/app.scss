@@ -21,7 +21,7 @@
   top: 0;
   z-index: 10;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-md);
@@ -37,23 +37,23 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   user-select: none;
-  
+
   &:hover {
     opacity: 0.8;
     transform: translateY(-1px);
   }
-  
+
   &:active {
     transform: translateY(0);
   }
-  
+
   .logo-icon {
     width: 32px;
     height: 32px;
     color: var(--color-primary);
     flex-shrink: 0;
   }
-  
+
   h1 {
     font-size: 1.5rem;
     font-weight: 600;
@@ -67,7 +67,7 @@
   display: flex;
   gap: var(--space-md);
   align-items: center;
-  
+
   a {
     padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius-md);
@@ -79,12 +79,12 @@
     align-items: center;
     justify-content: center;
     min-height: 36px;
-    
+
     &:hover {
       background-color: var(--color-bg-secondary);
       color: var(--color-text-primary);
     }
-    
+
     &.active {
       background-color: var(--color-primary);
       color: white;
@@ -101,7 +101,7 @@
   margin: 0 auto;
   box-sizing: border-box;
   min-height: 0;
-  
+
   // На мобильных устройствах разрешаем вертикальный скроллинг
   @media (max-width: 768px) {
     touch-action: pan-y;
@@ -173,12 +173,12 @@
   gap: var(--space-xs);
   min-height: 36px;
   white-space: nowrap;
-  
+
   &:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
   }
-  
+
   &:active {
     transform: translateY(0);
   }
@@ -187,11 +187,11 @@
 .auth-button-vk {
   background-color: #0077FF;
   color: white;
-  
+
   &:hover {
     background-color: #0066DD;
   }
-  
+
   svg {
     flex-shrink: 0;
   }
@@ -200,7 +200,7 @@
 .auth-button-out {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-secondary);
-  
+
   &:hover {
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-primary);
@@ -213,50 +213,50 @@
     padding: var(--space-md) var(--space-sm);
     gap: var(--space-sm);
   }
-  
+
   .app-logo {
     .logo-icon {
       width: 28px;
       height: 28px;
     }
-    
+
     h1 {
       font-size: 1.125rem;
     }
   }
-  
+
   .app-nav {
     width: 100%;
     justify-content: flex-start;
     gap: var(--space-sm);
-    
+
     a {
       padding: var(--space-xs) var(--space-sm);
       font-size: 0.8125rem;
     }
   }
-  
+
   .app-auth {
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .auth-user {
     flex-direction: column;
     align-items: flex-end;
     gap: var(--space-xs);
   }
-  
+
   .auth-user-name {
     max-width: 120px;
     font-size: 0.8125rem;
   }
-  
+
   .auth-button {
     padding: var(--space-xs) var(--space-sm);
     font-size: 0.8125rem;
   }
-  
+
   .app-content {
     padding: var(--space-md) var(--space-sm);
   }
@@ -269,17 +269,17 @@
     flex-direction: row;
     align-items: center;
   }
-  
+
   .app-logo {
     h1 {
       font-size: 1.25rem;
     }
   }
-  
+
   .app-nav {
     width: auto;
   }
-  
+
   .app-content {
     padding: var(--space-md);
   }
@@ -305,7 +305,7 @@
     max-width: 1600px;
     padding: var(--space-xl) var(--space-lg);
   }
-  
+
   .app-header {
     padding: var(--space-xl) var(--space-lg);
     max-width: 100%;
@@ -318,22 +318,22 @@
     max-width: 1800px;
     padding: var(--space-2xl) var(--space-xl);
   }
-  
+
   .app-header {
     padding: var(--space-xl) var(--space-lg);
-    
+
     .app-logo {
       .logo-icon {
         width: 36px;
         height: 36px;
       }
-      
+
       h1 {
         font-size: 1.75rem;
       }
     }
   }
-  
+
   .app-nav a {
     font-size: 1rem;
     padding: var(--space-sm) var(--space-lg);
@@ -346,36 +346,36 @@
     max-width: 2400px;
     padding: var(--space-2xl) var(--space-xl);
   }
-  
+
   .app-header {
     padding: var(--space-xl) var(--space-lg);
-    
+
     .app-logo {
       .logo-icon {
         width: 40px;
         height: 40px;
       }
-      
+
       h1 {
         font-size: 2rem;
       }
     }
   }
-  
+
   .app-nav a {
     font-size: 1.125rem;
     padding: var(--space-md) var(--space-xl);
   }
-  
+
   .auth-user-photo {
     width: 40px;
     height: 40px;
   }
-  
+
   .auth-user-name {
     font-size: 1rem;
   }
-  
+
   .auth-button {
     font-size: 1rem;
     padding: var(--space-sm) var(--space-lg);
@@ -388,16 +388,16 @@
     max-width: 3200px;
     padding: var(--space-2xl) var(--space-xl);
   }
-  
+
   .app-header {
     padding: var(--space-2xl) var(--space-xl);
-    
+
     .app-logo {
       .logo-icon {
         width: 48px;
         height: 48px;
       }
-      
+
       h1 {
         font-size: 2.5rem;
       }

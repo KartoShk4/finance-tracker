@@ -29,18 +29,6 @@
             }
             @if (authService.isAuthenticated()) {
               <div class="auth-user">
-                <div class="auth-user-info">
-                  @if (authService.user()?.photo) {
-                    <img
-                      [src]="authService.user()?.photo"
-                      [alt]="authService.user()?.firstName"
-                      class="auth-user-photo" />
-                  }
-
-                  <span class="auth-user-name">
-              {{ authService.user()?.firstName }} {{ authService.user()?.lastName }}
-            </span>
-                </div>
                 <button
                   class="auth-button auth-button-out"
                   (click)="signOut()"
